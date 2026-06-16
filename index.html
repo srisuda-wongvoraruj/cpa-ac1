@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPA AC1 Quiz</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun','Noto Sans Thai',sans-serif;background:#f0f4f8;min-height:100vh;color:#1a202c}
+.screen{display:none}.screen.active{display:block}
+
+/* HOME */
+#home{max-width:640px;margin:0 auto;padding:32px 16px}
+.logo{text-align:center;margin-bottom:24px}
+.logo h1{font-size:2rem;font-weight:800;color:#2b6cb0}
+.logo p{color:#718096;font-size:.9rem;margin-top:4px}
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.stat-card .num{font-size:1.7rem;font-weight:800;color:#2b6cb0}
+.stat-card .label{font-size:.72rem;color:#718096;margin-top:2px}
+.filter-group{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.section-title{font-size:.75rem;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.filter-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 14px;border-radius:20px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;font-size:.83rem;transition:all .15s;color:#4a5568}
+.chip.active{background:#2b6cb0;border-color:#2b6cb0;color:#fff}
+.mode-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode-btn{padding:12px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;text-align:center;transition:all .15s}
+.mode-btn.active{border-color:#2b6cb0;background:#ebf8ff;color:#2b6cb0}
+.mode-btn .mode-icon{font-size:1.3rem}.mode-btn .mode-name{font-size:.83rem;font-weight:600;margin-top:3px}
+.mode-btn .mode-desc{font-size:.68rem;color:#718096}
+.start-btn{width:100%;padding:16px;background:#2b6cb0;color:#fff;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:16px;transition:background .15s}
+.start-btn:hover{background:#2c5282}
+.qr-btn{width:100%;padding:12px;background:#fff;color:#2b6cb0;border:2px solid #2b6cb0;border-radius:12px;font-size:.9rem;font-weight:700;cursor:pointer;margin-top:10px;transition:all .15s}
+.qr-btn:hover{background:#ebf8ff}
+
+/* HISTORY */
+.history-section{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.history-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f7fafc}
+.history-item:last-child{border-bottom:none}
+.h-score{font-size:1.1rem;font-weight:800;color:#2b6cb0;width:52px;flex-shrink:0;text-align:center}
+.h-info{flex:1;min-width:0}
+.h-exam{font-size:.75rem;color:#718096}
+.h-detail{font-size:.82rem;color:#4a5568;font-weight:600}
+.h-time{font-size:.75rem;color:#a0aec0;text-align:right;flex-shrink:0}
+.h-date{font-size:.68rem;color:#cbd5e0}
+.no-history{text-align:center;color:#a0aec0;font-size:.85rem;padding:12px 0}
+
+/* QR MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-box{background:#fff;border-radius:20px;padding:28px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-box h3{font-size:1.1rem;font-weight:800;margin-bottom:6px}
+.modal-box p{font-size:.82rem;color:#718096;margin-bottom:16px;line-height:1.5}
+#qr-canvas{display:flex;justify-content:center;margin-bottom:16px}
+.url-box{background:#f7fafc;border-radius:8px;padding:10px;font-size:.75rem;color:#4a5568;word-break:break-all;margin-bottom:16px;font-family:monospace}
+.modal-close{width:100%;padding:12px;background:#2b6cb0;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.95rem}
+
+/* QUIZ */
+#quiz{max-width:640px;margin:0 auto;padding:16px}
+.quiz-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.back-btn{width:36px;height:36px;border-radius:50%;border:none;background:#fff;cursor:pointer;font-size:1.1rem;box-shadow:0 1px 3px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.progress-wrap{flex:1}
+.progress-info{display:flex;justify-content:space-between;font-size:.72rem;color:#718096;margin-bottom:4px}
+.progress-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:#2b6cb0;border-radius:3px;transition:width .3s}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.score-badge{background:#fff;border-radius:8px;padding:3px 10px;font-size:.78rem;font-weight:700;color:#2b6cb0;box-shadow:0 1px 3px rgba(0,0,0,.1);white-space:nowrap}
+.timer-badge{background:#2d3748;border-radius:8px;padding:3px 10px;font-size:.78rem;font-weight:700;color:#68d391;box-shadow:0 1px 3px rgba(0,0,0,.1);white-space:nowrap;font-family:monospace;letter-spacing:.05em}
+.exam-tag{font-size:.7rem;color:#718096;background:#edf2f7;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:8px}
+.question-card{background:#fff;border-radius:16px;padding:22px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.question-num{font-size:.72rem;font-weight:700;color:#a0aec0;margin-bottom:6px}
+.question-text{font-size:.97rem;line-height:1.75;color:#2d3748}
+.options-list{display:flex;flex-direction:column;gap:9px}
+.option-btn{background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:13px 15px;display:flex;align-items:flex-start;gap:11px;cursor:pointer;transition:all .15s;text-align:left;width:100%}
+.option-btn:hover:not(:disabled){border-color:#90cdf4;background:#ebf8ff}
+.option-btn:disabled{cursor:default}
+.option-btn.selected{border-color:#2b6cb0;background:#ebf8ff}
+.option-btn.correct{border-color:#38a169;background:#f0fff4}
+.option-btn.wrong{border-color:#e53e3e;background:#fff5f5}
+.option-letter{width:27px;height:27px;border-radius:50%;background:#edf2f7;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex-shrink:0;color:#4a5568}
+.option-btn.correct .option-letter{background:#38a169;color:#fff}
+.option-btn.wrong .option-letter{background:#e53e3e;color:#fff}
+.option-btn.selected .option-letter{background:#2b6cb0;color:#fff}
+.option-text{flex:1;font-size:.9rem;line-height:1.65;color:#2d3748;padding-top:2px}
+.feedback-box{background:#fff;border-radius:12px;padding:13px 15px;margin-top:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);display:none}
+.feedback-box.show{display:block}
+.feedback-box.correct-fb{border-left:4px solid #38a169}
+.feedback-box.wrong-fb{border-left:4px solid #e53e3e}
+.feedback-box.no-answer-fb{border-left:4px solid #ed8936}
+.feedback-title{font-weight:700;font-size:.88rem;margin-bottom:3px}
+.feedback-box.correct-fb .feedback-title{color:#276749}
+.feedback-box.wrong-fb .feedback-title{color:#9b2c2c}
+.feedback-box.no-answer-fb .feedback-title{color:#c05621}
+.feedback-box p{font-size:.82rem;color:#4a5568}
+.next-btn{width:100%;padding:14px;background:#2b6cb0;color:#fff;border:none;border-radius:12px;font-size:.97rem;font-weight:700;cursor:pointer;margin-top:12px;transition:background .15s;display:none}
+.next-btn.show{display:block}
+.next-btn:hover{background:#2c5282}
+
+/* RESULT */
+#result{max-width:640px;margin:0 auto;padding:36px 16px;text-align:center}
+.result-emoji{font-size:3.5rem;margin-bottom:10px}
+.result-title{font-size:1.5rem;font-weight:800;margin-bottom:4px;color:#2d3748}
+.result-subtitle{color:#718096;margin-bottom:22px;font-size:.9rem}
+.result-score{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.big-score{font-size:3.5rem;font-weight:800;color:#2b6cb0;line-height:1}
+.score-label{color:#718096;font-size:.85rem;margin-top:6px}
+.time-display{font-size:1.1rem;font-weight:700;color:#4a5568;margin-top:10px;font-family:monospace}
+.result-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.breakdown-item{text-align:center}
+.breakdown-num{font-size:1.5rem;font-weight:800}
+.breakdown-num.green{color:#38a169}.breakdown-num.red{color:#e53e3e}.breakdown-num.gray{color:#a0aec0}
+.breakdown-label{font-size:.7rem;color:#718096}
+.result-btn{width:100%;padding:13px;border-radius:12px;font-size:.97rem;font-weight:700;cursor:pointer;margin-bottom:9px;transition:all .15s}
+.btn-primary{background:#2b6cb0;color:#fff;border:none}.btn-primary:hover{background:#2c5282}
+.btn-secondary{background:#fff;color:#2b6cb0;border:2px solid #2b6cb0}.btn-secondary:hover{background:#ebf8ff}
+
+/* REVIEW */
+#review{max-width:640px;margin:0 auto;padding:16px}
+.review-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.review-header h2{font-size:1.1rem;font-weight:700}
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-tab{padding:6px 14px;border-radius:20px;border:none;background:#e2e8f0;cursor:pointer;font-size:.8rem;color:#4a5568;transition:all .15s}
+.filter-tab.active{background:#2b6cb0;color:#fff}
+.review-item{background:#fff;border-radius:12px;padding:15px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:4px solid transparent}
+.review-item.r-correct{border-left-color:#38a169}.review-item.r-wrong{border-left-color:#e53e3e}.review-item.r-skipped{border-left-color:#ed8936}
+.review-meta{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.review-status{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:4px}
+.r-correct .review-status{background:#f0fff4;color:#276749}.r-wrong .review-status{background:#fff5f5;color:#9b2c2c}.r-skipped .review-status{background:#fffaf0;color:#c05621}
+.review-q{font-size:.87rem;line-height:1.6;margin-bottom:7px;color:#2d3748}
+.review-options{display:flex;flex-direction:column;gap:3px}
+.review-opt{font-size:.8rem;padding:4px 8px;border-radius:6px;color:#4a5568}
+.review-opt.r-is-correct{background:#f0fff4;color:#276749;font-weight:600}
+.review-opt.r-was-selected{background:#fff5f5;color:#9b2c2c;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div id="home" class="screen active">
+  <div style="max-width:640px;margin:0 auto;padding:28px 16px">
+    <div class="logo">
+      <h1>CPA AC1</h1>
+      <p>แบบทดสอบจากข้อสอบจริง วิชาการบัญชี 1</p>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card"><div class="num" id="total-q-stat">75</div><div class="label">ข้อทั้งหมด</div></div>
+      <div class="stat-card"><div class="num" id="best-score-stat">-</div><div class="label">คะแนนสูงสุด</div></div>
+      <div class="stat-card"><div class="num" id="sessions-stat">0</div><div class="label">ครั้งที่ทำ</div></div>
+    </div>
+
+    <!-- History -->
+    <div class="history-section" id="history-section">
+      <div class="section-title">ประวัติการทำ</div>
+      <div id="history-list"><div class="no-history">ยังไม่มีประวัติ</div></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="section-title">เลือกชุดข้อสอบ</div>
+      <div class="filter-chips" id="exam-filter">
+        <button class="chip active" data-exam="all">ทั้งหมด</button>
+        <button class="chip" data-exam="68_01">1/2568</button>
+        <button class="chip" data-exam="68_02">2/2568</button>
+        <button class="chip" data-exam="68_03">3/2568</button>
+        <button class="chip" data-exam="69_01">1/2569</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="section-title">โหมด</div>
+      <div class="mode-options">
+        <button class="mode-btn active" onclick="selectMode(this,'quiz')">
+          <div class="mode-icon">✏️</div><div class="mode-name">ตามลำดับ</div><div class="mode-desc">ทีละข้อ มีเฉลย</div>
+        </button>
+        <button class="mode-btn" onclick="selectMode(this,'shuffle')">
+          <div class="mode-icon">🔀</div><div class="mode-name">สุ่มข้อ</div><div class="mode-desc">สลับลำดับทุกครั้ง</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="section-title">จำนวนข้อ</div>
+      <div class="filter-chips" id="count-filter">
+        <button class="chip active" data-count="all">ทั้งหมด</button>
+        <button class="chip" data-count="10">10 ข้อ</button>
+        <button class="chip" data-count="20">20 ข้อ</button>
+        <button class="chip" data-count="30">30 ข้อ</button>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startQuiz()">เริ่มทำข้อสอบ</button>
+    <button class="qr-btn" onclick="showQR()">📱 เปิดจากมือถือ (QR Code)</button>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div id="qr-modal" style="display:none" class="modal-overlay" onclick="closeQR(event)">
+  <div class="modal-box">
+    <h3>📱 เปิดจากมือถือ</h3>
+    <p>ให้มือถืออยู่ใน Wi-Fi เดียวกัน<br>แล้วสแกน QR หรือพิมพ์ URL นี้</p>
+    <div id="qr-canvas"></div>
+    <div class="url-box" id="qr-url-text">กำลังโหลด...</div>
+    <button class="modal-close" onclick="closeQR()">ปิด</button>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz" class="screen">
+  <div style="max-width:640px;margin:0 auto;padding:16px">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span id="q-progress-text">ข้อ 1 / 75</span>
+          <span id="q-remaining"></span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="header-right">
+        <div class="score-badge" id="live-score">0/0</div>
+        <div class="timer-badge" id="timer-display">00:00</div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="exam-tag" id="q-exam-tag"></div>
+      <div class="question-num" id="q-num"></div>
+      <div class="question-text" id="q-text"></div>
+    </div>
+
+    <div class="options-list" id="options-list"></div>
+    <div class="feedback-box" id="feedback-box">
+      <div class="feedback-title" id="feedback-title"></div>
+      <p id="feedback-detail"></p>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">ถัดไป →</button>
+  </div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div id="result" class="screen">
+  <div style="max-width:640px;margin:0 auto;padding:36px 16px;text-align:center">
+    <div class="result-emoji" id="result-emoji">🏆</div>
+    <div class="result-title" id="result-title">ยอดเยี่ยม!</div>
+    <div class="result-subtitle" id="result-subtitle"></div>
+    <div class="result-score">
+      <div class="big-score" id="big-score">0%</div>
+      <div class="score-label" id="score-label"></div>
+      <div class="time-display" id="time-display"></div>
+      <div class="result-breakdown">
+        <div class="breakdown-item"><div class="breakdown-num green" id="r-correct">0</div><div class="breakdown-label">ถูก</div></div>
+        <div class="breakdown-item"><div class="breakdown-num red" id="r-wrong">0</div><div class="breakdown-label">ผิด</div></div>
+        <div class="breakdown-item"><div class="breakdown-num gray" id="r-skipped">0</div><div class="breakdown-label">ไม่มีเฉลย</div></div>
+      </div>
+    </div>
+    <button class="result-btn btn-primary" onclick="showReview()">ดูเฉลยทั้งหมด</button>
+    <button class="result-btn btn-secondary" onclick="restartSame()">ทำอีกครั้ง</button>
+    <button class="result-btn btn-secondary" onclick="goHome()">กลับหน้าหลัก</button>
+  </div>
+</div>
+
+<!-- REVIEW SCREEN -->
+<div id="review" class="screen">
+  <div style="max-width:640px;margin:0 auto;padding:16px">
+    <div class="review-header">
+      <button class="back-btn" onclick="showScreen('result')">←</button>
+      <h2>เฉลยทั้งหมด</h2>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-tab active" onclick="filterReview('all',this)">ทั้งหมด</button>
+      <button class="filter-tab" onclick="filterReview('wrong',this)">ผิด</button>
+      <button class="filter-tab" onclick="filterReview('correct',this)">ถูก</button>
+    </div>
+    <div id="review-list"></div>
+  </div>
+</div>
+
+<script>
+const ALL_QUESTIONS = [{"question": "สินทรพั ยท์ ีตอ้ งทาํ การทดสอบการดอ้ ยค่าทกุ ปี ไม่รวมถึงรายการใดต่อไปนี", "options": [{"letter": "a", "text": "สินทรพั ยไ์ม่มีตวั ตนทีอายกุ ารใชป้ ระโยชนย์ งั ไม่ทราบแน่นอน"}, {"letter": "b", "text": "ค่าความนิยม"}, {"letter": "c", "text": "สินทรพั ยไ์ม่มีตวั ตน"}, {"letter": "d", "text": "สินทรพั ยอ์ งคก์ ร"}], "answer": "d", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ซือ กิจการ ผูถ้ กู ซือ มีขอ้ มลู ดงั นี ทนุ 100,000 กาํ ไรสะสม 80,000 โดยจา่ ยคา่ ใชจ้ า่ ยเพิมเติมดงั ต่อไปนี ใชจ้ า่ ยในการ ออกเอกสาร 2,000 สินทรพั ย ์FMV>BV 20,000 หนสี ินภาษีเงินไดร้ อตดั บัญชี 6,000 ค่าความนิยม 10,000 ผลตอบแทนทีซือ มีมลู ค่าเท่าใด", "options": [{"letter": "a", "text": "200,000 บาท"}, {"letter": "b", "text": "204,000 บาท"}, {"letter": "c", "text": "210,000 บาท"}, {"letter": "d", "text": "216,000 บาท"}], "answer": "b", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "อา้ งถงึ กรอบแนวคิดการรายงานทางการเงิน ขอ้ ใดไมใ่ ช่ลกั ษณะคณุ ภาพ", "options": [{"letter": "a", "text": "เขา้ ใจได ้"}, {"letter": "b", "text": "ดาํ เนินงานต่อเนือง"}, {"letter": "c", "text": "พิสจู นไ์ ด ้"}, {"letter": "d", "text": "เกียวขอ้ งกบั การตดั สินใจ"}], "answer": "b", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ขอ้ ใดไม่สามารถรวมเป็นตน้ ทนุ ของการสาํ รวจแร ่", "options": [{"letter": "a", "text": "ค่าสิทธิในการขุดเจาะ"}, {"letter": "b", "text": "ค่าใชจ้ า่ ยในการศกึ ษาธรณีวิทยา"}, {"letter": "c", "text": "ค่าใชจ้ า่ ยในการนาํ แรไ่ ปขาย"}, {"letter": "d", "text": "ค่าใชจ้ า่ ยในการขุดเจาะ"}], "answer": "c", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ขอ้ ใดไม่ตอ้ งเปิดเผยในหมายเหตใุ นเรือง ภาษีเงินได ้", "options": [{"letter": "a", "text": "อตั ราภาษี"}, {"letter": "b", "text": "แสดงการคาํ นวณภาษี"}, {"letter": "c", "text": "กระทบยอดภาษี"}, {"letter": "d", "text": "มลู ค่าตามบญั ช ี"}], "answer": "b", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "อา้ งถงึ TFRS 3 ขอ้ ใดไม่สามารถวดั มลู คา่ ใหม่ภายในปี (measurement period) นบั จากการรวมธุรกิจสาํ เรจ็", "options": [{"letter": "a", "text": "ค่าความนิยม"}, {"letter": "b", "text": "สิงตอบแทนโอนให ้"}, {"letter": "c", "text": "ค่าใชจ้ า่ ยรวมธุรกจิ"}, {"letter": "d", "text": "NCI"}], "answer": "c", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ขอ้ ใดทไี ม่เกียวกบั การดอ้ ยค่าของสินทรพั ยต์ าม TAS 36", "options": [{"letter": "a", "text": "สินทรพั ยไ์ม่หมนุ เวียนทถี ือไวเ้พือขายตาม TFRS 5"}, {"letter": "b", "text": "เงินลงทุนตาม บ.รว่ ม"}, {"letter": "c", "text": "ค่าความนิยม"}, {"letter": "d", "text": "สินทรพั ยอ์ งคก์ ร"}], "answer": "a", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ก รว่ มการงานกบั ข โดยก ลงเครอื งจกั ร ข ลงแรงงาน ส่วนแบ่ง : ก ตอ้ งบนั ทกึ บัญชีอยา่ งไร", "options": [{"letter": "a", "text": "บนั ทึกเครืองจกั รเป็นเงินลงทนุ รว่ มคา้"}, {"letter": "b", "text": "บนั ทึกเครืองจกั รเป็นทดี ิน อาคาร อปุ กรณ.์"}, {"letter": "c", "text": "บนั ทึกส่วนแบ่งจากสินทรพั ยส์ ทุ ธิหกั เครืองจกั ร %"}, {"letter": "d", "text": "บนั ทึกส่วนแบ่งจากสินทรพั ยส์ ทุ ธิ %"}], "answer": null, "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "สินทรพั ยท์ ีตอ้ งทดสอบดอ้ ยค่าประจาํ ปี ไม่รวมรายการในขอ้ ใด", "options": [{"letter": "a", "text": "สินทรพั ยไ์ม่มีตวั ตนทีไม่ทราบอายกุ ารใชง้ าน"}, {"letter": "b", "text": "รายจา่ ยวิจยั"}, {"letter": "c", "text": "สินทรพั ยไ์ม่มีตวั ตนทยี งั ไม่พรอั มใชง้ าน"}, {"letter": "d", "text": "ค่าความนิยม"}], "answer": "b", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "สินทรพั ยร์ าคาทนุ 2 ลา้ นบาท มลู ค่าตามบญั ชี .5 ลา้ นบาท คา่ เสือมสะสมทางภาษี .1 ลา้ นบาท อตั ราภาษี % ผลต่างชวั คราวจาํ นวนเท่าใดและสินทรพั ยห์ นีส ินภาษีเงินไดร้ อตดั บญั ชีเทา่ ใด", "options": [{"letter": "a", "text": "ผลต่าง , บาท DTA 120,000 บาท"}, {"letter": "b", "text": "ผลต่าง , บาท DTL 120,000 บาท"}, {"letter": "c", "text": "ผลต่าง , บาท DTA 80,000 บาท"}, {"letter": "d", "text": "ผลต่าง ,000 บาท DTL 80,000 บาท"}], "answer": "b", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ขอ้ ใดไม่ถกู ตอ้ งตามหลกั การคิดค่าเสือมของมาตรฐานการบญั ชฉี บบั ที ทดี ิน อาคาร อปุ กรณ ์", "options": [{"letter": "a", "text": "ค่าเสอื มราคาตอ้ งบนั ทึกเขา้ งบกาํ ไรขาดทนุ ยกเวน้ ค่าเสือมราคาทีตอ้ งเอาไปรวมกบั มลู ค่าของสินทรพั ยอ์ ืน"}, {"letter": "b", "text": "การคิดค่าเสือมราคาสามารถแยกคิดไดถ้ งึ แมว้ ่าสินทรพั ยน์ นั จะเป็นองคป์ ระกอบดว้ ยกนั แต่สามารถแยกราคา ทนุ และอายุการใหป้ ระโยชนไ์ ดอ้ ย่างชดั เจน"}, {"letter": "c", "text": "หากมลู คา่ ยตุ ธิ รรมของสินทรพั ยม์ ากกวา่ มลู คา่ ตามบญั ชี กจิ การก็ตอ้ งคิดค่าเสือมต่อไป ถึงแมว้ ่ามลู ค่าคงเหลือ จะสงู กว่ามลู ค่าตามบญั ชี.."}, {"letter": "d", "text": "กิจการตอ้ งคิดคา่ เสือมของสินทรพั ยเ์มือพรอ้ มใชง้ าน และไม่สามารถหยดุ คิดคา่ เสือมราคาได ้แมจ้ ะหยดุ ใชง้ าน ชวั คราว"}], "answer": null, "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "บรษิ ัทเดินรถแห่งหนึงทาํ สญั ญากบั รฐั บาลโดยตอ้ งเดินรถหา้ เสน้ ทางเทา่ นนั คือ ก ข ค ง และ จ บรษิ ัทสามารถ รายงานสินทรพั ยแ์ ละกระแสเงินสดแยกรายเสน้ ทางได ้กและข ขาดทนุ อย่างมีสารสาํ คญั คและง มีกาํ ไรอยา่ งมาก จ คมุ้ ทนุ มีกีหน่วยสินทรพั ยท์ กี ่อใหเ้กิดเงินสด", "options": [{"letter": "a", "text": "หน่วย"}, {"letter": "b", "text": "หน่วย"}, {"letter": "c", "text": "หน่วย"}, {"letter": "d", "text": "5 หน่วย"}], "answer": "a", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "บรษิ ัทเดินรถแห่งหนึงทาํ สญั ญากบั รฐั บาลจาํ นวน 5 เสน้ ทางโดยไม่จาํ เป็นตอ้ งเดินรถทงั หา้ เสน้ ทาง สามารถเลือกเดิน รถไดต้ ามตอ้ งการ เสน้ ทางเหลา่ นนั คือ ก ข ค ง และ จ บริษัทสามารถรายงานสินทรพั ยแ์ ละกระแสเงินสดแยกราย เสน้ ทางได ้ซงึ ก และ ข ขาดทนุ อย่างมีสาระสาํ คญั ค และ ง มีกาํ ไรอย่างมาก ส่วน จ แค่คมุ้ ทนุ กิจการจะถือว่ามีกี หน่วยสินทรพั ยท์ ีก่อใหเ้กดิ เงินสดกีหน่วย", "options": [{"letter": "a", "text": "หน่วย"}, {"letter": "b", "text": "หน่วย"}, {"letter": "c", "text": "หน่วย"}, {"letter": "d", "text": "5 หน่วย"}], "answer": "d", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ขอ้ ใดไม่ถือเป็นสินทรพั ยท์ ีเขา้ เงือนไขในการรวมตน้ ทนุ การกยู้ มื เขา้ เป็นตน้ ทนุ สินทรพั ย ์", "options": [{"letter": "a", "text": "โรงไฟฟ้าทีก่อสรา้ งนานกวา่ สองปี"}, {"letter": "b", "text": "เครืองบินไอพน่ ราคาแพงทีซือ จากโบอิง"}, {"letter": "c", "text": "สะพานขา้ มแยกทใี ชเ้วลาสรา้ งนานกวา่ หนึงปี"}, {"letter": "d", "text": "เรือขนส่งทางทะเลทีก่อสรา้ งหนึงถึงสองปี"}], "answer": "b", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ก กบั ข มีการรว่ มการงาน โดยมกี ารควบคมุ รว่ ม ขอ้ ใดถกู ตอ้ ง", "options": [{"letter": "a", "text": "เป็น “ผรู้ ว่ มดาํ เนินงาน” มีสิทธิในสินทรพั ยแ์ ละภาระผูกพนั ในหนีส ินทเีกียวขอ้ งกบั การรว่ มการงานนนั"}, {"letter": "b", "text": "เป็น “ผรู้ ว่ มดาํ เนินงาน” มีสิทธิในสินทรพั ยส์ ทุ ธิเกียวขอ้ งกบั การรว่ มการงานนนั"}, {"letter": "c", "text": "เป็น “ผรู้ ว่ มคา้ ” มีสิทธิในสินทรพั ยแ์ ละภาระผูกพนั ในหนีส ินทเีกียวขอ้ งกบั การรว่ มการงานนนั"}, {"letter": "d", "text": "เป็น “ผรู้ ว่ มคา้ ” มีสิทธิในสินทรพั ยส์ ทุ ธิและภาระผูกพนั ในหนีส ินทเีกียวขอ้ งกบั การรว่ มการงานนนั"}], "answer": "a", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "ใหค้ าํ นวณตน้ ทนุ สินคา้ คงเหลือตอ่ ชิน ซอื สินคา้ ลา้ น อากรนาํ เขา้ . ลา้ น ตน้ ทนุ ผนั แปร . ลา้ น ตน้ ทนุ คงที ประมาณการผลิตได ้ ลา้ นชนิ ผลิตจรงิ . ลา้ นชนิ", "options": [{"letter": "a", "text": "15.625 บาท"}, {"letter": "b", "text": "15.875 บาท"}, {"letter": "c", "text": "14.625 บาท"}, {"letter": "d", "text": "12.700 บาท หน่วย : บาท ค่าสินค้า 10,000,000 อากรขาเข้า 200,000 ต้นทนุ ผนั แปร 1,500,000 รวมต้นทนุ ผนั แปร 11,700,000 หารจาํ นวนผลิตจริง 800,000 ต้นทนุ ผนั แปรต่อหน่วย 14.625 ต้นทนุ คงที 1,000,000 หารประมาณการจาํ นวนผ ล ิต 1,000,000 ต้นทนุ คงทีต่อหน่วย 1.000 ต้นทุนรวมต่อหน่วย 15.625"}], "answer": "a", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "อา้ งถงึ TFRS 9 ขอ้ ใดคือ hold to collect", "options": [{"letter": "ก", "text": "กิจการลงทนุ ในสินทรพั ยท์ างการเงินเพือรบั กระแสเงินสดตามสญั ญา โดยในอดตี มีการขายสินทรพั ยท์ างการเงิน เมอื ความเสียงดา้ นเครดติ ในสินทรพั ยท์ างการเงินเพมิ ขึน"}, {"letter": "ข", "text": "กิจการซือ กล่มุ สินทรพั ยท์ างการเงินทีอาจมีการดอ้ ยค่าดา้ นเครดิตหรือไม่ก็ได ้เพือเก็บเงินตามสญั ญา อาจมีการ ทวงหนีด ว้ ยวิธีตา่ งๆ ซงึ กจิ การไมม่ วี ตั ถปุ ระสงคใ์ นการขายลกู หนเีหล่านีอ อกไป ในบางครงั อาจทาํ สญั ญาการ แลกเปลียนอตั ราดอกเบีย (interest rate swap) จากดอกเบีย ลอยตวั เป็นคงท ี"}, {"letter": "ค", "text": "กิจการไดข้ ายสินทรพั ยท์ างการเงินใหบ้ รษิ ัทย่อยทีทาํ หนา้ ทีตวั กลางเพือแปลงสินทรพั ยเ์ป็นหลกั ทรพั ย ์ (securitization) เพือออกตราสารขายใหก้ บั ผูล้ งทนุ"}, {"letter": "ง", "text": "สถาบนั การเงินถือสินทรพั ยท์ างการเงินเพือใหเ้ขา้ หลกั เกณฑส์ ภาพคล่องของหนว่ ยงานกาํ กบั ดแู ล โดยจะไม่ขาย สินทรพั ยเ์หล่านี เวน้ แต่อย่ภู ายใตภ้ าวะกดดนั"}, {"letter": "a", "text": "ก ค"}, {"letter": "b", "text": "ก ข และ ง"}, {"letter": "c", "text": "ก ค ง"}, {"letter": "d", "text": "ก ข ค ง"}], "answer": "b", "exam": "ครั้งที่ 1/2568", "source": "68_01"}, {"question": "บรษิ ัทขายรถ โดยรบั ประกนั คา่ ซอ่ มจากความเสียหายระยะเวลา 2 ปี กรณีทีความเสียหายเกิดจากตวั เครืองยนต ์ ค่าซ่อมแซมความเสียหาย 100,000 บาทต่อคนั แต่หากเกิดจากส่วนอืนจะมคี ่าซ่อมแซม 20,000 บาทต่อคนั ใน ระหว่างปี บรษิ ัทขายรถยนตไ์ด ้10 คนั จากประสบการณใ์ นอดีต 85% ไม่มีความเสียหายเกิดขึน 15% ความ เสียหายเกิดจากเครืองยนต ์และ 10% เสียหายจากส่วนอืน บริษัทตอ้ งตงั ประมาณการหนีส ินคา่ ซ่อมเท่ากบั เท่าใด", "options": [{"letter": "a", "text": "20,000 บาท"}, {"letter": "b", "text": "100,000 บาท"}, {"letter": "c", "text": "170,000 บาท"}, {"letter": "d", "text": "ไม่ตอ้ งตงั ประมาณการ ตามขอ้ มูลความน่าจะเป็นบวกกนั ตอ้ งได ้100% แต่ขอ้ นบี วกแลว้ ได ้110% จึงไม่สามารถใช ้expected value ได ้เลยใช้ โอกาสมากทสี ดุ เป็นคาํ ตอบ ซงึ โอกาสทเีป็นไปไดม้ ากทสี ดุ (คา่ mode) ก็คอื 85% ซงึ ก็คอื ไมม่ ีความเสยี หาย จึงไมต่ อ้ งตงั ประมาณการ"}], "answer": "d", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "สินทรพั ย ์25x1, 25x2 เท่ากบั ,0, บาท และ 19,0, บาทตามลาํ ดบั หนีส ิน 25x1, 25x2 เทา่ กับ 12,000, บาท และ ,000, บาท ตามลาํ ดบั โดยมีการเพมิ ทุนในปี 25x2 จาํ นวน 500,000 บาท จ่ายปัน ผลปี 25x2 จาํ นวน 150,000 บาท ใหห้ ากาํ ไรขาดทุนสทุ ธิของปี 25x2", "options": [{"letter": "a", "text": "กาํ ไร ,, บาท"}, {"letter": "b", "text": "กาํ ไร ,, บาท"}, {"letter": "c", "text": "กาํ ไร , บาท"}, {"letter": "d", "text": "ขาดทนุ ,000, บาท ส่วนของเจา้ของ ยกมาตน้ x2 4,000,000 ปันผล 1 50,000 เพมิ ทุน 5 00,000 ยกไปสนิ x2 5,000,000 กาํไร (ผลต่าง) 6 50,000 5,150,000 5,150,000"}], "answer": "c", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดคือปัจจยั ภายนอกของการดอ้ ยค่า", "options": [{"letter": "a", "text": "มลู ค่าบญั ชีสงู กว่ามลู คา่ ตลาด"}, {"letter": "b", "text": "ตดั สายการผลิตในการส่งออกต่างประเทศ"}, {"letter": "c", "text": "หลกั ฐานลา้ สมยั ของสินคา้"}, {"letter": "d", "text": "ผูเ้ขา้ สอบ CPA น่ารกั ทกุ คน"}], "answer": "a", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "มค 25x1 กิจการทาํ สญั ญาเช่า เดือนโดยไม่มีเงือนไขในการยืดอาย ุแต่ ตลุ า 25x1 คยุ กบั เจา้ ของวา่ จะ เช่าต่ออกี ปี โดยเรมิ ณ มค 25x2 เป็นตน้ ไป ขอ้ ใดถกู ตอ้ ง", "options": [{"letter": "a", "text": "สญั ญาเกา่ ไม่เขา้ TFRS เพราะถือเป็นสญั ญาเชา่ ระยะสนั"}, {"letter": "b", "text": "ถือเป็นการแปลงสญั ญา โดยเรมิ คิดสินทรพั ยส์ ิทธิการใชใ้ หม่ ณ ตค รวมเป็นสญั ญาเหลือ เดอื น"}, {"letter": "c", "text": "ถือเป็นสญั ญาสญั ญาใหม่ สิทธิการใช ้เรมิ ณ มค 25x2"}, {"letter": "d", "text": "xxx"}], "answer": "b", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "กิจการซือ มาขายไปมีค่าขนส่งสินคา้ เขา้ และดอกเบีย จ่ายจากเงินกยู้ ืมเพือซอื สินคา้ จงระบุคา่ ใชจ้ ่ายทีรบั รูเ้ป็น ตน้ ทุนสินคา้ คงเหลือได ้", "options": [{"letter": "a", "text": "ค่าขนส่งได ้ดอกเบีย เงินกยู้ ืมไม่ได.้"}, {"letter": "b", "text": "ค่าขนส่งได ้ดอกเบีย เงินกยู้ ืมได ้"}, {"letter": "c", "text": "ค่าขนส่งไม่ได ้ดอกเบีย เงินกยู้ ืมไม่ได ้"}, {"letter": "d", "text": "ค่าขนส่งไม่ได ้ดอกเบีย เงินกยู้ ืมได ้"}], "answer": null, "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดเป็น ทีดิน อาคาร อปุ กรณต์ าม TAS16", "options": [{"letter": "a", "text": "พืชใหผ้ ลิตผล"}, {"letter": "b", "text": "Xx"}, {"letter": "c", "text": "Xx"}, {"letter": "d", "text": "Xx"}], "answer": "a", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดไม่จาํ เป็นตอ้ งทดสอบดอ้ ยค่าสินทรพั ยท์ กุ รอบรายงาน", "options": [{"letter": "a", "text": "ค่าความนิยม"}, {"letter": "b", "text": "สินทรพั ยไ์ม่มีตวั ตนทีทราบอายแุ น่นอนทีไดจ้ ากการรวมธุรกิจ"}, {"letter": "c", "text": "สินทรพั ยไ์ม่มีตวั ตนทีไม่ทราบอาย ุ"}, {"letter": "d", "text": "สินทรพั ยไ์ม่มีตวั ตนทยี งั ไม่พรอ้ มใชง้ าน"}], "answer": "b", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดไมใ่ ช่สินทรพั ยท์ รี ะบุไดต้ าม TAS38", "options": [{"letter": "a", "text": "สิทธิบตั รทซี ือ มาจากกิจการอืน"}, {"letter": "b", "text": "สิทธิในการทาํ ธุรกิจ"}, {"letter": "c", "text": "ค่าความนิยมทีไดจ้ ากการรวมธุรกิจ"}, {"letter": "d", "text": "สิทธิบตั ร"}], "answer": "c", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ลกู คา้ ฟ้องเรียกค่าเสียหาย ,, บาท โดยทีปรกึ ษากฎหมายใหค้ วามเห็นวา่ มคี วามเป็นไปได ้% ที บรษิ ัทตอ้ งจ่ายชดเชย บรษิ ัทตอ้ ง", "options": [{"letter": "a", "text": "ไม่ตอ้ งตงั ประมาณการ ั"}, {"letter": "b", "text": "ไม่ตอ้ งตงั ประมาณการหนีสิน แตต่ อ้ งเปิดเผยหนีส ินทอี าจจะเกิดขนึ จากคดีความ"}, {"letter": "c", "text": "ตงั ประมาณการหนีส ิน ลา้ นบาท"}, {"letter": "d", "text": "ตงั ประมาณการหนีส ิน แสนบาท"}], "answer": "b", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "อา้ งถงึ TFRS 10 เรอื ง งบการเงินรวม ขอ้ ใดผิด", "options": [{"letter": "a", "text": "ถา้ กจิ การถือหนุ้ ในกจิ การอืนเกิน % ตอ้ งทาํ งบการเงินรวมทนั ที"}, {"letter": "b", "text": "หากมีอาํ นวจควบคมุ บรษิ ัทตอ้ งทาํ งบการเงินรวมโดยไม่มีขอ้ ยกเวน้"}, {"letter": "c", "text": "ถา้ บริษัทใหญ่ไม่ไดซ้ ือ สว่ นไดเ้สียทงั หมด ไม่ตอ้ งคาํ นวณส่วนไดเ้สียทีไม่มีอาํ นาจควบคมุ"}, {"letter": "d", "text": "ผิดทกุ ขอ้"}], "answer": "d", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "จากการคาํ นวณกาํ ไรทางบญั ชเีป็นกาํ ไรทางภาษี กจิ การควรรบั รูค้ ่าใชจ้ า่ ยภาษีเงินไดเ้ป็นเท่าใด (อตั ราภาษี 20%)  กาํ ไรทางบญั ชี ,  ผลแตกต่างถาวร (30,000)  คงเหลือ 70,000  ผลแตกต่างชวั คราว (40,000)  กาํ ไรทางภาษี ,", "options": [{"letter": "a", "text": ", บาท"}, {"letter": "b", "text": "114, บาท"}, {"letter": "c", "text": ", บาท"}, {"letter": "d", "text": "106, บาท"}], "answer": "b", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "อา้ งถงึ TAS 40 อสงั หารมิ ทรพั ยเ์พือการลงทนุ หากกิจการวดั มลู ค่าดว้ ยวิธีราคาทุน กบั วิธีมลู ค่ายตุ ธิ รรม กิจการ ตอ้ งเปิดเผยขอ้ มลู ใด", "options": [{"letter": "a", "text": "อายุของส/ท และค่าเสือมราคา?"}, {"letter": "b", "text": "มลู ค่าตามบญั ชีก่อนหกั ค่าเสือม"}, {"letter": "c", "text": "รายไดค้ า่ เชา่"}, {"letter": "d", "text": "การดอ้ ยค่า"}], "answer": "c", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดไมใ่ ช่ปัจจยั ในการกาํ หนดอายกุ ารใหป้ ระโยชนข์ องสินทรพั ย ์", "options": [{"letter": "a", "text": "ความลา้ สมยั ของเทคโนโลยี"}, {"letter": "b", "text": "การชาํ รุดทางกายภาพของสินทรพั ย ์"}, {"letter": "c", "text": "ขอ้ กาํ หนดดา้ นกฎหมาย หรือขอ้ จาํ กดั อืนทคี ลา้ ยคลงึ กนั"}, {"letter": "d", "text": "กระแสเงินสดทีคาดว่าจะไดร้ บั"}], "answer": "d", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดไมใ่ ช่นิยามของ อนพุ นั ธ ์", "options": [{"letter": "a", "text": "มีมลู ค่าทอี งิ ตามราคาของสินทรพั ยอ์ ืน"}, {"letter": "b", "text": "เป็นสญั ญาแยกต่างหาก"}, {"letter": "c", "text": "มีการรบั จา่ ยกนั ในอนาคต"}, {"letter": "d", "text": "ณ วนั แรกมีมลู คา่ ตาํ หรือไม่ตอ้ งจา่ ย"}], "answer": "b", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดไม่อยใู่ นขอบเขต TAS19", "options": [{"letter": "a", "text": "ขายหนุ้ เพมิ ทุนใหพ้ นกั งานในราคาตาํ"}, {"letter": "b", "text": "ขายสินคา้ ใหพ้ นกั งานในราคาตาํ กว่าปกต ิ"}, {"letter": "c", "text": "ทนุ การศกึ ษาปรญิ ญาโท ทีไม่มีภาระผกู พนั ใดๆ"}, {"letter": "d", "text": "Xx"}], "answer": "a", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ขอ้ ใดไมใ่ ช่ขอ้ มลู เกียวกบั สินคา้ คงเหลือทีตอ้ งเปิดเผยในหมายเหตฯุ", "options": [{"letter": "a", "text": "มลู ค่าของสินคา้ คงเหลือทีรบั รูเ้ป็นคาํ ใชจ้ า่ ยในระหว่างงวดบญั ชีนนั"}, {"letter": "b", "text": "จาํ นวนทเีบิกใชเ้ป็นตน้ ทนุ ก่อสรา้ งอาคาร"}, {"letter": "c", "text": "นโยบายการบญั ชีทีใชใ้ นการวดั มลู ค่าสินคา้ คงเหลือ รวมถงึ วิธีทใี ชค้ าํ นวณตน้ ทนุ"}, {"letter": "d", "text": "มลู ค่าทลี ดลงของสินคา้ คงเหลือเนืองจากการปรบั ใหเ้ทา่ กับมลู ค่าสทุ ธิทีจะไดร้ บั"}], "answer": "b", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "ซือ ทีดินทาํ เหมืองแร ่ไดแ้ ร ่,, ตนั โดยตอ้ งปรบั ปรุงทดี ินใหก้ ลบั ส่สู ภาพเดิม หลงั การปรบั ปรุงแลว้ ทีดินมี มลู ค่าทจี ะไดร้ บั ,,บาท ตน้ ทุนทีดินและค่าปรบั ปรุงมีดงั น ีทดี ิน มลู ค่า ,, บาท ค่าปรบั ปรุง พืน ท ี,, บาท ใหห้ าค่าตดั จาํ หนา่ ยต่อตนั", "options": [{"letter": "a", "text": ". บาท"}, {"letter": "b", "text": ". บาท"}, {"letter": "c", "text": ". บาท"}, {"letter": "d", "text": "xx บาท (15m+2m-2m)/5m = 3 บาทต่อตนั"}], "answer": "b", "exam": "ครั้งที่ 2/2568", "source": "68_02"}, {"question": "กรณีกิจการมีการตรวจนบั สินคา้ คงเหลือซา้ํ กนั 2 ครงั้ จะสง่ ผลกระทบตอ่ สินทรพั ย ์/ หนีส้ ิน / สว่ นของเจา้ ของ อย่างไร", "options": [{"letter": "a", "text": "ต่าํ ไป / ไม่กระทบ / ต่าํ ไป"}, {"letter": "b", "text": "ต่าํ ไป / ไม่กระทบ / สงู ไป"}, {"letter": "c", "text": "ต่าํ ไป / สงู ไป / สงู ไป"}, {"letter": "d", "text": "สงู ไป / ไม่กระทบ / สงู ไป"}], "answer": "d", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดถกู ตอ้ งท่ีสดุ", "options": [{"letter": "a", "text": "ตามวิธีการตีราคาใหม่ ถา้ กิจการตีราคา PPE ใหม่ รายการใดรายการหน่งึ กิจการไม่ตอ้ งใชก้ ารตีราคา ใหม่ กบั PPE ท่ีจดั ประเภทเดียวกนั"}, {"letter": "b", "text": "กิจการสามารถตีราคาใหม่ PPE ท่ีจดั ประเภทเดียวกนั บางรายการได ้"}, {"letter": "c", "text": "การตีราคาบอ่ ยครงั้ ของ PPE ท่ีมี FV เปล่ียนแปลงอย่างไม่มีนยั สาํ คญั ในกรณีดงั กลา่ วการตีราคาใหม่ ทกุ 3 ปี หรอื 5 ปี ถือวา่ เพียงพอ.."}, {"letter": "d", "text": "หากการตีราคา PPE ใหม่ ทาํ ให ้BV เพ่ิมขนึ้ ใหบ้ นั ทกึ BV ท่ีเพ่ิมขึน้ จากการตีราคาใหม่ เขา้ P/L"}], "answer": null, "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ลงทนุ ในบ.รว่ ม 20% 11,000 บาท ณ วนั ท่ีลงทนุ ทนุ จดทะเบียนเท่ากบั 30,000 บาท กาํ ไรสะสม 8,000 บาท โดยมลู คา่ ยตุ ิธรรมของสินคา้ คงเหลือมากกวา่ มลู คา่ ตามบญั ชี 2,000 บาท ในปี x1 กาํ ไร 4,000 บาท x2 กาํ ไร 8,000 บาทจ่ายปันผลปีละ 1,500 บาท มลู คา่ เงินลงทนุ 31/12/x2 ในงบเฉพาะกิจการ และงบการเงินรวม", "options": [{"letter": "a", "text": "11,000 และ 12,800 บาท"}, {"letter": "b", "text": "11,000 และ 12,400 บาท"}, {"letter": "c", "text": "8.000 และ 12,800 บาท"}, {"letter": "d", "text": "8,000 และ 12,400 บาท"}], "answer": "b", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "เคร่อื งจกั ร ราคา1,000,000 บาท คาดการณผ์ ลิตสินคา้ ได1้ 00,000 ชิน้ มลู คา่ เศษซากหลงั ใชง้ าน 50,000 บาท 25x1ผลิตสินคา้ ได ้20,000 ชิน้ กิจการคิดคา่ เส่ือมจาํ นวนผลผลิต ณสิน้ ปี เคร่อื งจกั รมีมลู คา่ ตามบญั ชีเท่าไร", "options": [{"letter": "a", "text": "810,000 บาท"}, {"letter": "b", "text": "720,000 บาท"}, {"letter": "c", "text": "100,000 บาท"}, {"letter": "d", "text": "1,000,000 บาท"}], "answer": "a", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดคือลกั ษณะย่อยของ “การเป็นตวั แทนอนั เท่ียงธรรม (representation faithfulness) ก. ครบถว้ น ข. ปราศจากขอ้ ผิดพลาด ค. เป็นกลาง ง. สาระสาํ คญั", "options": [{"letter": "a", "text": "ก,ข,ค,ง"}, {"letter": "b", "text": "ก,ข"}, {"letter": "c", "text": "ก ข ค"}, {"letter": "d", "text": "ก ข ง"}], "answer": "c", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ก และ ข ลงทนุ ใน ค ในสดั สว่ น 50:50 โดยวาระการประชมุ สาํ คญั ตอ้ งไดร้ บั คะแนนเสียง 51% ขึน้ ไป ก และ ข จะจดั ประเภทเงินลงทนุ ใน ค อย่างไร", "options": [{"letter": "a", "text": "กิจการรว่ มคา้ / กิจการรว่ มคา้"}, {"letter": "b", "text": "บรษิ ัทรว่ ม / บรษิ ัทรว่ ม"}, {"letter": "c", "text": "บรษิ ัทย่อย / บรษิ ัทรว่ ม"}, {"letter": "d", "text": "บรษิ ัทรว่ ม / บรษิ ัทย่อย"}], "answer": "a", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดไม่ใช่อสงั หารมิ ทรพั ยเ์พ่ือการลงทนุ", "options": [{"letter": "a", "text": "ท่ีดินถือไวเ้ก็งกาํ ไร"}, {"letter": "b", "text": "อพารท์ เมน้ ทป์ ล่อยเช่า"}, {"letter": "c", "text": "หอพกั ท่ีสรา้ งใหพ้ นกั งานอย่แู ละเก็บคา่ เช่า"}, {"letter": "d", "text": "อาคารใหเ้ช่าตามสญั ญาเช่าดาํ เนินงาน"}], "answer": "c", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดคือความหมายของคาํ วา่ “มลู คา่ สทุ ธิท่คี าดวา่ จะไดร้ บั ”", "options": [{"letter": "a", "text": "ราคาท่ีจะไดร้ บั จากการขายสินทรพั ยใ์ นสภาพปกติระหวา่ งผรู้ ว่ มตลาด ณ วนั ท่ีวดั มลู คา่"}, {"letter": "b", "text": "จาํ นวนเงินท่ีคาดวา่ จะไดร้ บั จากการขายสินคา้ ในสภาพการดาํ เนินธุรกิจปกติ โดยหกั ดว้ ยคา่ ใชจ้ ่ายท่ี จาํ เป็นในการทาํ ใหส้ ินคา้ เสรจ็ สมบรู ณแ์ ละคา่ ใชจ้ ่ายในการขาย.."}, {"letter": "c", "text": "มลู คา่ ท่ีสงู กวา่ ระหวา่ งมลู คา่ ยตุ ิธรรมหกั ตน้ ทนุ ในการขาย หรอื มลู คา่ จากการใชส้ ินทรพั ยน์ นั้"}, {"letter": "d", "text": "มลู คา่ ปัจจบุ นั ของกระแสเงินสดในอนาคตท่ีคาดวา่ จะไดร้ บั จากการใชส้ ินทรพั ยห์ รอื หน่วยสินทรพั ยท์ ่ี ก่อใหเ้กิดเงินสดอย่างตอ่ เน่ือง"}], "answer": null, "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดตอ่ ไปนีถ้ ือวา่ เป็น “วนั ซือ้ กิจการสาํ เรจ็ ” ตาม TFRS 3 การรวมธุรกิจ", "options": [{"letter": "a", "text": "วนั ท่ีเซ็นสญั ญาซือ้ กิจการ"}, {"letter": "b", "text": "วนั ท่ีผซู้ ือ้ ไดอ้ าํ นาจควบคมุ กิจการ เช่น มีสิทธิแต่งตงั้ กรรมการบรหิ าร"}, {"letter": "c", "text": "วนั ท่ีชาํ ระคา่ ซือ้ กิจการครบถว้ น"}, {"letter": "d", "text": "วนั ท่ีถือหนุ้ เกิน 50% ของสิทธิออกเสียง"}], "answer": "b", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดไม่ใช่สินทรพั ยไ์ ม่มีตวั ตน ท่ีไม่สามารถระบไุ ดแ้ ละแยกแสดงรายการได ้", "options": [{"letter": "a", "text": "สิทธิบตั ร"}, {"letter": "b", "text": "เคร่อื งหมายการคา้"}, {"letter": "c", "text": "ลิขสิทธิ์"}, {"letter": "d", "text": "คา่ ความนิยมจากการรวมธุรกิจ"}], "answer": "d", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดถกู ตอ้ ง", "options": [{"letter": "a", "text": "ทดสอบการดอ้ ยคา่ สินทรพั ยไ์ ม่มีตวั ตนท่ีไม่มีตวั ตนท่ีมีอายใุ ชง้ านท่ีไม่แน่นอนเม่ือมีขอ้ บง่ ชี ้"}, {"letter": "b", "text": "ทดสอบการดอ้ ยคา่ สินทรพั ยไ์ ม่มีตวั ตนท่ีไม่พรอ้ มใชง้ านเม่ือมีขอ้ บง่ ชี ้"}, {"letter": "c", "text": "กิจการตอ้ งทดสอบการดอ้ ยคา่ ของคา่ ความนิยมเม่ือมีขอ้ บง่ ชีข้ องการดอ้ ยคา่"}, {"letter": "d", "text": "กิจการตอ้ งทดสอบการดอ้ ยคา่ ของคา่ ความนิยมทกุ ปี แมว้ า่ จะมีหรอื ไม่มีขอ้ บง่ ชีข้ องการดอ้ ยคา่"}], "answer": "d", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "บรษิ ัทไดร้ บั ความเสียหายจากอบุ ตั ิเหต ุคา่ เสียหายประมาณ 1 ลา้ นบาท บรษิ ัทประเมินความเสียหาย และสง่ เอกสารเคลมกบั บรษิ ัทประกนั ภยั ซง่ึ ณ 31/12/25x1 บรษิ ัทยงั ไม่ไดร้ บั สินไหมทดแทนจากบรษิ ัทประกนั ภยั แต่ ทนายความบอกวา่ มีความเป็นไปไดส้ งู ท่ีจะไดร้ บั เงินจากบรษิ ัทประกนั ภยั บรษิ ัทจะถือปฏิบตั ิอย่างไรเก่ียวกบั ธุรกรรมขา้ งตน้ ณ 31/12/25x1", "options": [{"letter": "a", "text": "ตงั้ ประมาณการสินทรพั ย ์1 ลา้ นบาท เพราะมีโอกาสสงู ท่ีจะไดร้ บั ชาํ ระ"}, {"letter": "b", "text": "เปิดเผยขอ้ มลู เก่ียวกบั การเคลมขา้ งตน้ ในหวั ขอ้ “สินทรพั ยท์ ่ีอาจเกิดขนึ้ ” เน่ืองจากมีความเป็นไปไดส้ งู ท่ีจะไดร้ บั คา่ สินไหมทดแทน.."}, {"letter": "c", "text": "ไม่ตอ้ งดาํ เนินการใดๆ"}, {"letter": "d", "text": "ขนึ้ อย่กู บั ดลุ ยพินิจของฝ่ายบรหิ าร"}], "answer": null, "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดตอ่ ไปนี ้“อาจ” ถกู บนั ทกึ เป็นสินทรพั ยไ์ ม่มีตวั ตนของกิจการเหมืองแร ่ตาม TFRS 6 และ TAS 38", "options": [{"letter": "a", "text": "คา่ ก่อสรา้ งบา้ นพกั คนงานช่วั คราว"}, {"letter": "b", "text": "สิทธิการสาํ รวจและประเมินแหลง่ แรท่ ่ีไดม้ าจากภาครฐั"}, {"letter": "c", "text": "อปุ กรณข์ ดุ เหมืองแร ่"}, {"letter": "d", "text": "ยานพาหนะท่ีใชใ้ นเหมือง"}], "answer": "b", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใด “ไม่ใช่” วตั ถปุ ระสงคข์ องการรายงานทางการเงินท่วั ไป ตามกรอบแนวคิดสาํ หรบั การรายงานทางการเงิน พ.ศ. 2563", "options": [{"letter": "a", "text": "เพ่ือช่วยผใู้ ชต้ ดั สินใจเก่ียวกบั การซือ้ ขาย หรอื ถือครองตราสารทนุ และตราสารหนี ้"}, {"letter": "b", "text": "เพ่ือช่วยผใู้ ชป้ ระเมินความสามารถในการใหห้ รอื ชาํ ระเงินก ู้และสินเช่ือในรูปแบบอ่ืน"}, {"letter": "c", "text": "เพ่ือช่วยผใู้ ชป้ ระเมินและใชส้ ิทธิออกเสียง หรอื มีอิทธิพลตอ่ การดาํ เนินงานของฝ่ายบรหิ าร"}, {"letter": "d", "text": "เพ่ือแสดงมลู คา่ ท่ีแทจ้ รงิ ของกิจการในงบการเงิน"}], "answer": "d", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดกลา่ วถกู ตอ้ งเก่ียวกบั วิธีการวดั มลู คา่ อสงั หารมิ ทรพั ยเ์พ่ือการลงทนุ (Investment Property) ตาม TAS 40", "options": [{"letter": "a", "text": "วดั มลู คา่ ไดเ้ฉพาะวิธีราคาทนุ เท่านนั้"}, {"letter": "b", "text": "วดั มลู คา่ ไดเ้ฉพาะวิธีมลู คา่ ยตุ ิธรรมเท่านนั้"}, {"letter": "c", "text": "สามารถเลือกวดั มลู คา่ ไดท้ งั้ วิธีราคาทนุ หรอื มลู คา่ ยตุ ิธรรม"}, {"letter": "d", "text": "วดั มลู คา่ วิธีมลู ค่ายตุ ิธรรมผ่านกาํ ไรขาดทนุ เบ็ดเสรจ็ อ่ืน (OCI)"}], "answer": "c", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "บรษิ ัทแห่งหน่งึ มีสินทรพั ยถ์ าวรมลู คา่ 30,000 บาท ใชป้ ระโยชนไ์ ด ้5 ปี และตดั ค่าเส่ือมราคาแบบเสน้ ตรง เม่ือ สิน้ ปีท่ี 2 มีขอ้ มลู ดงั นี ้มลู คา่ ท่ไี ดร้ บั คืน (VIU) = 7,000 บาท / มลู คา่ ยตุ ิธรรมหลงั หกั ตน้ ทนุ ขาย (FVLCTS) = 9,000 บาท กิจการตอ้ งรบั รูค้ า่ เผ่ือการดอ้ ยคา่ ของสินทรพั ยจ์ าํ นวนเท่าใด?", "options": [{"letter": "a", "text": "มลู คา่ ท่ีไดร้ บั คืน 9,000 บาท ดอ้ ยคา่ 21,000 บาท"}, {"letter": "b", "text": "มลู คา่ ท่ีไดร้ บั คืน 7,000 บาท ดอ้ ยคา่ 23,000 บาท"}, {"letter": "c", "text": "มลู คา่ ท่ีไดร้ บั คืน 9,000 บาท ดอ้ ยคา่ 9,000 บาท"}, {"letter": "d", "text": "มลู คา่ ท่ีไดร้ บั คืน 7,000 บาท ดอ้ ยคา่ 7,000 บาท มูลคา่ ตามบญั ชีหลงั ตดั คา่ เสอื่ ม = 30,000 (30,000/5 × 2) = 18,000 มูลคา่ ทไี่ ดร้ บั คนื = Max(7,000, 9,000) −= 9,000 ดงั นนั้ ขาดทนุ จากการดอ้ ยคา่ = 18,000 9,000 = 9,000 บาท"}], "answer": "c", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "กรณีท่ีกิจการซือ้ เคร่อื งมือช่าง− เช่น คอ้ นและสิ่ว ซ่งึ มีอายกุ ารใชง้ านเกิน 1 ปี แตบ่ นั ทกึ เป็นคา่ ใชจ้ ่ายทนั ที โดย มิไดร้ บั รูเ้ป็นสินทรพั ยถ์ าวร กิจการนีใ้ ชห้ ลกั การบญั ชีขอ้ ใดเป็นแนวทางในการตดั สินใจ", "options": [{"letter": "a", "text": "หลกั ความสม่าํ เสมอ (Consistency)"}, {"letter": "b", "text": "หลกั การจบั ครู่ ายไดแ้ ละคา่ ใชจ้ ่าย (Matching Principle)"}, {"letter": "c", "text": "หลกั สมเหตสุ มผลระหวา่ งประโยชนท์ ่ีไดร้ บั กบั ตน้ ทนุ ท่ีจ่ายไป (Cost–Benefit Constraint)"}, {"letter": "d", "text": "หลกั ความตอ่ เน่ืองของกิจการ (Going Concern)"}], "answer": "c", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "กิจการมีคา่ ใชจ้ ่ายดา้ นสิ่งแวดลอ้ มจาํ นวน 10 บาท ซง่ึ ไม่สามารถหกั ลดหย่อนภาษีไดใ้ นปัจจบุ นั หรอื อนาคต (non-deductible expense) หากอตั ราภาษีเงินไดน้ ิติบคุ คลคือ 20% ฐานภาษีของคา่ ใชจ้ ่ายนีเ้ท่ากบั เท่าใด", "options": [{"letter": "a", "text": "10 บาท"}, {"letter": "b", "text": "12 บาท"}, {"letter": "c", "text": "0 บาท"}, {"letter": "d", "text": "2 บาท ฐานภาษี คอื จาํ นวนทหี่ กั กาํ ไรทางภาษีในอนาคต ในกรณนี ี้“คา่ ใชจ้ ่ายส่งิ แวดลอ้ ม 10 บาท” ไม่สามารถหกั ลดหย่อน ภาษีไดเ้ลย → ไม่มผี ลทางภาษีในอนาคต ดงั นนั้ ฐานภาษี = 0"}], "answer": "c", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "บรษิ ัทไดร้ บั ความเสียหายจาก อบุ ตั ิเหตมุ ลู คา่ ความเสียหาย 5 ลา้ นบาท ณ วนั ท่ี 31/12/25x1 บรษิ ัทย่ืนเอกสาร เพ่ือขอเคลมคา่ ความเสียหายจากบรษิ ัทประกนั ภยั ซง่ึ มลู คา่ ขอเคลมคือ 4 ลา้ นบาท แตย่ งั ไม่ไดร้ บั การอนมุ ตั ิจาก บรษิ ัทประกนั ภยั บรษิ ัทจะตอ้ งถือปฏิบตั ิกบั รายการขา้ งตน้ อย่างไร", "options": [{"letter": "a", "text": "บนั ทกึ คา่ ใชจ้ ่ายและประมาณการหนีส้ ิน 5 ลา้ นบาท"}, {"letter": "b", "text": "บนั ทกึ คา่ ใชจ้ ่ายและประมาณการหนีส้ ิน 5 ลา้ นบาท และบนั ทกึ สินทรพั ยจ์ ากการขอเคลมประกนั 4 ลา้ นบาท"}, {"letter": "c", "text": "บนั ทกึ คา่ ใชจ้ ่ายและประมาณการหนีส้ ิน 4 ลา้ นบาท"}, {"letter": "d", "text": "บนั ทกึ คา่ ใชจ้ ่ายและประมาณการหนีส้ ิน 4 ลา้ นบาท และบนั ทกึ สินทรพั ยจ์ ากการขอเคลมประกนั 4 ลา้ นบาท"}], "answer": "a", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดตอ่ ไปนี ้“อย่นู อกขอบเขต” ของมาตรฐานการรายงานทางการเงิน ฉบบั ท่ี 9 (TFRS 9: เคร่อื งมือทางการเงิน)", "options": [{"letter": "a", "text": "สญั ญาจะซือ้ หรอื ขายสินคา้ ท่ีไม่ใช่ทางการเงินซ่งึ สามารถชาํ ระเป็นเงินสดเสมือนเป็นตราสารทาง การเงิน"}, {"letter": "b", "text": "สญั ญาซือ้ ขายสินคา้ จรงิ เพ่ือใชต้ ามการดาํ เนินงานปกติของกิจการ (own use)"}, {"letter": "c", "text": "อนพุ นั ธแ์ ฝงท่ีอย่ใู นสญั ญาเช่า"}, {"letter": "d", "text": "ขอ้ a–c ถกู ทงั้ หมด"}], "answer": "b", "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "กิจการซือ้ ท่ีดินไวเ้พ่ือขาย (จาํ แนกเป็นสินคา้ คงเหลือ) ตน้ ทนุ 100,000 บาท ณ 31 ธ.ค. 25x1 ต่อมา 31 ธ.ค. 25x2 เปล่ียนวตั ถปุ ระสงคเ์ป็น “ใหเ้ช่า” และวดั IP ดว้ ย โมเดลมลู คา่ ยตุ ิธรรม ท่ี 120,000 บาท รายการบนั ทกึ บญั ชีใดถกู ตอ้ งตาม TAS 40", "options": [{"letter": "a", "text": "Dr. อสงั หารมิ ทรพั ยเ์พ่ือการลงทนุ 120,000 บาท / Cr. สินคา้ คงเหลือ 100,000 บาท / Cr. สว่ นเกินทนุ จากการตีราคา (OCI) 20,000 บาท"}, {"letter": "b", "text": "Dr. อสงั หารมิ ทรพั ยเ์พ่ือการลงทนุ 120,000 บาท / Cr. สินคา้ คงเหลือ 100,000 บาท / Cr. กาํ ไรจาก การวดั มลู คา่ (P/L) 20,000 บาท.."}, {"letter": "c", "text": "Dr. อสงั หารมิ ทรพั ยเ์พ่ือการลงทนุ 100,000 บาท / Dr. ขาดทนุ จากการตีราคา (P/L) 20,000 บาท / Cr สินคา้ คงเหลือ 120,000 บาท"}, {"letter": "d", "text": "Dr. อสงั หารมิ ทรพั ยเ์พ่ือการลงทนุ 100,000 บาท / Cr. สินคา้ คงเหลือ 100,000 บาท (ไม่รบั รูก้ าํ ไร/ ขาดทนุ )"}], "answer": null, "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "วนั ใดตอ่ ไปนีถ้ ือวา่ เป็น “วนั ซือ้ กิจการสาํ เรจ็ ” ตาม TFRS 3 การรวมธุรกิจ", "options": [{"letter": "a", "text": "วนั ท่ีโอนคา่ หนุ้ ใหผ้ ถู้ ือหนุ้ เดิม"}, {"letter": "b", "text": "วนั ท่ีแจง้ โอนหนุ้ ตอ่ นายทะเบียนบรษิ ัท"}, {"letter": "c", "text": "วนั ท่ีระบใุ นสญั ญาซือ้ ขายหนุ้"}, {"letter": "d", "text": "วนั ท่ีผซู้ ือ้ มีสิทธิควบคมุ กิจการ เช่น แตง่ ตงั้ กรรมการบรหิ ารได.้"}], "answer": null, "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ขอ้ ใดตอ่ ไปนีถ้ กู ตอ้ งเก่ียวกบั การวดั มลู คา่ “เม่ือเร่มิ แรก” ของอสงั หารมิ ทรพั ยเ์พ่ือการลงทนุ ตาม TAS 40", "options": [{"letter": "a", "text": "วดั มลู คา่ ดว้ ยราคาทนุ (Cost) เท่านนั้"}, {"letter": "b", "text": "วดั มลู คา่ ดว้ ยราคาทนุ รวมตน้ ทนุ ท่ีเกิดขนึ้ โดยตรงจากการทาํ รายการ (Cost including transaction costs).."}, {"letter": "c", "text": "วดั มลู คา่ ดว้ ยมลู คา่ ยตุ ธิ รรม (Fair Value)"}, {"letter": "d", "text": "วดั มลู คา่ ดว้ ยมลู คา่ ยตุ ธิ รรมรวมตน้ ทนุ ทาํ รายการ"}], "answer": null, "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ตาม TAS 27 เร่ืองงบการเงินเฉพาะกิจการ กิจการตอ้ งวดั มลู คา่ เงินลงทนุ ในบรษิ ัทรว่ มและกิจการรว่ มคา้ ในงบ การเงินเฉพาะกิจการดว้ ยวิธีใด", "options": [{"letter": "a", "text": "วิธีราคาทนุ หรอื วิธีสว่ นไดเ้สีย หรอื วิธีท่ี TFRS 9 ระบ.ุ"}, {"letter": "b", "text": "วิธีมลู คา่ ยตุ ิธรรมเท่านนั้"}, {"letter": "c", "text": "วิธีราคาทนุ เท่านนั้"}, {"letter": "d", "text": "วิธีสว่ นไดเ้สียเท่านนั้"}], "answer": null, "exam": "ครั้งที่ 3/2568", "source": "68_03"}, {"question": "ผลู้ งทนุ ซือ้ บ.รว่ ม สดั ส่วน 25% เป็นเงิน 13,000 บาท ซ่งึ สว่ นของเจา้ ของบรษิ ัทรว่ มประกอบดว้ ย หนุ้ สามญั 30,000 บาท กาํ ไรสะสม 8,000 บาท โดยมลู ค่าตามบญั ชีของสินคา้ คงเหลือต่าํ กว่ามลู ค่ายตุ ิธรรม 2,000 บาท โดยผลู้ งทนุ ยอมจา่ ยเงินคา่ ความนิยม 3,000 บาท ทงั้ นี ้บรษิ ัทรว่ มมีกาํ ไรสทุ ธิในปี 25x1, 25x2 เท่ากบั 6,000 บาท และ 10,000 บาท เงินปันผล ปีละ2,000 บาท ขอ้ ใดถกู ตอ้ ง", "options": [{"letter": "a", "text": "เงินลงทนุ ตามวิธีส่วนไดเ้สีย x1 = 14,000 บาท"}, {"letter": "b", "text": "เงินลงทนุ ตามวิธีส่วนไดเ้สีย x2 = 15,500 บาท"}, {"letter": "c", "text": "เงินลงทนุ ตามวิธีส่วนไดเ้สีย x2 = 16,000 บาท"}, {"letter": "d", "text": "เงินปันผลของผลู้ งทนุ ปีละ 1,000 บาท อา้ งถงึ TAS 28 ผูล้ งทนุ ตอ้ งรบั รูม้ ูลค่าเงนิ ลงทนุ ดว้ ยวธิ ีส่วนไดเ้สยี = 13,000 บาท + ((6,000 + 10,000 - ตดั จา่ ยสว่ น ต่างสนิ คา้ 2,000 - ปันผล 2 ปี 4,000 บาท) x 25%) = 15,500 บาทในปี 25x2 บาท เงนิ ลงทุนเรมิ� ตน้ 13,000 กําไร x1 6,000 หัก ตัดจ่ายผลต่างสนิ คา้ คงเหลอื - 2,000 หัก ปันผล - 2,000 2,000 สัดส่วนถอื หุน้ 25% 500 มูลค่าเงนิ ลงทุน x1 13,500 กําไร x2 1 0,000 หัก ปันผล - 2,000 8,000 สัดส่วนถอื หุน้ 25% 2,000 มูลคา่ เงนิ ลงทุน x2 1 5,500"}], "answer": "b", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "ขอ้ ใดต่อไปนถี้ ือเป็น “ตน้ ทนุ บรกิ ารในอดตี (Past Service Cost)” ตาม TAS 19", "options": [{"letter": "a", "text": "การเพมิ่ ขึน้ ของผลประโยชนจ์ ากเงินเดือนท่จี ่ายจรงิ มากกวา่ เงินเดอื นท่ีประมาณการ"}, {"letter": "b", "text": "การเพมิ่ ขึน้ ของผลประโยชนเ์น่ืองจากกิจการแกไ้ ขโครงการใหพ้ นกั งานท่ีทาํ งานครบ 20 ปีไดร้ บั ผลประโยชนเ์พิ่มขึน้ .."}, {"letter": "c", "text": "การลดลงของผลประโยชนจ์ ากการเปลี่ยนแปลงอตั ราคดิ ลดท่ีใชค้ าํ นวณภาระผกู พนั"}, {"letter": "d", "text": "การเพมิ่ ขึน้ ของผลประโยชนจ์ ากการปรบั สมมตฐิ านอตั ราการเพมิ่ ขึน้ ของเงินเดือน Past service cost เกิดจาก การแก้ไขโครงการผลประโยชน์ (plan amendment) หรือ การลดขนาดโครงการ (curtailment) ซ่ึงมีผลต่อผลประโยชนท์ เี่กดิ จาก บริการของพนักงานในอดตี ตวั เลือกอนื่ เป็น actuarial remeasurement ซ่งึ รบั รูใ้ น OCI"}], "answer": null, "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "ซือ้ เครื่องจกั รในราคา 500,000 บาท ตอนดชั นีผบู้ รโิ ภค 100 ต่อมามลู คา่ ยตุ ิธรรมของเครื่องจกั รเท่ากบั 495,000 บาท ดชั นีผบู้ รโิ ภค 98 ถา้ ใชแ้ นวคิดการรกั ษาระดบั ทนุ ทางการเงนิ โดยใชอ้ าํ นาจซือ้ คงท่ี รายการนจี้ ะไดก้ าํ ไรหรือ ขาดทนุ เทา่ กบั เท่าใด", "options": [{"letter": "a", "text": "0 บาท"}, {"letter": "b", "text": "+5,000 บาท"}, {"letter": "c", "text": "-5,000 บาท"}, {"letter": "d", "text": "+5,102 บาท ตน้ ทนุ เครือ่ งจกั ร 500,000 เมือ่ CPI ลดจาก 100 เหลือ 98 ทนุ ทตี่ อ้ งรกั ษาตามแนวคดิ financial capital maintenance in units of constant purchasing power เท่ากบั 490,000 (500,000 × 98/100) เมือ่ มูลค่ายตุ ธิ รรมของสนิ ทรพั ย์สนิ้ งวด เท่ากบั 495,000 จึงถือวา่ ทรพั ยส์ นิ สทุ ธเิพ่มิ ขึน้ เหนอื ทนุ ทตี่ อ้ งรกั ษา 5,000 ดงั นนั้ รายการนถี้ ือวา่ มีกาํ ไร 5,000 บาท แมว้ า่ มูลค่าทรพั ย์สนิ ในเชิงตวั เงนิ จะลดลงจาก 500,000 เหลือ 495,000 ก็ตาม"}], "answer": "b", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "บรษิ ัท ก และ บรษิ ัท ข ถือ บรษิ ัท ค 30%และ40%ตามลาํ ดบั และบรษิ ัท ข ถือ บรษิ ัท ก 40% คาํ ถาม: บรษิ ัท ค อย่ใู ตก้ ารควบคมุ ของใคร", "options": [{"letter": "a", "text": "ก"}, {"letter": "b", "text": "ข"}, {"letter": "c", "text": "ทงั้ ก และ ข"}, {"letter": "d", "text": "ไม่ใช่ทงั้ ก และ ข บริษัท ก ถือหนุ้ ในบรษิ ัท ค 30% และบริษัท ข ถือหนุ้ 40% แมบ้ ริษัท ข จะถือหนุ้ ในบริษัท ก 40% แต่ยงั ไม่ถงึ ระดบั ทใี่ ห ้ อํานาจควบคุมบริษัท ก ดงั นนั้ ไม่มีฝ่ายใดมีอาํ นาจเหนือบริษัท ค ตามหลกั TFRS 10 บรษิ ัท ค จงึ ไม่อย่ภู ายใต้การ ควบคุมของบริษัทใดบริษัทหนึ่ง"}], "answer": "d", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "ขอ้ ใดเขา้ เง่ือนไขเรื่องตน้ ทนุ กยู้ ืม", "options": [{"letter": "a", "text": "อาคารระหว่างก่อสรา้ ง"}, {"letter": "b", "text": "อาคารท่ซี ือ้ มาและพรอ้ มใชง้ านตามวตั ถปุ ระสงค ์"}, {"letter": "c", "text": "สินคา้ คงเหลือ"}, {"letter": "d", "text": "เครื่องมือทางการเงิน"}], "answer": "a", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "อา้ งถงึ TAS 36 เรื่องการดอ้ ยคา่ ของสินทรพั ย ์หากกจิ การมี “สินทรพั ยอ์ งคก์ ร (Corporate Assets)” เช่น อาคาร สาํ นกั งานใหญ่ ซง่ึ ไม่สามารถสรา้ งกระแสเงินสดไดโ้ดยอิสระ กิจการควรดาํ เนินการทดสอบการดอ้ ยค่าอย่างไร", "options": [{"letter": "a", "text": "ปันส่วนมลู ค่าตามบญั ชีของสินทรพั ยอ์ งคก์ รไปยงั หน่วยสรา้ งกระแสเงินสด (CGU) ท่ีเกี่ยวขอ้ งตาม เกณฑท์ ่ีเหมาะสมก่อนทาํ การทดสอบดอ้ ยค่า.."}, {"letter": "b", "text": "ทดสอบการดอ้ ยค่าของสินทรพั ยอ์ งคก์ รแยกตา่ งหากจากหนว่ ยสรา้ งกระแสเงินสด"}, {"letter": "c", "text": "สินทรพั ยอ์ งคก์ รไม่จาํ เป็นตอ้ งนาํ มาพิจารณาในการทดสอบการดอ้ ยค่า"}, {"letter": "d", "text": "สินทรพั ยอ์ งคก์ รตอ้ งทดสอบการดอ้ ยคา่ เป็นรายสินทรพั ยท์ กุ งวดแมไ้ ม่มีขอ้ บ่งช ี้"}], "answer": null, "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "ขอ้ มลู เงินลงทนุ ต่อไปนี ้ขอ้ ใดไม่ไดอ้ ย่ภู ายใตข้ อ้ กาํ หนดในการเปิดเผยของมาตรฐานการรายงานทางการเงิน ฉบบั ท่ี 12 เรื่อง การเปิดเผยขอ้ มลู เกี่ยวกบั ส่วนไดเ้สียในกจิ การอื่น", "options": [{"letter": "a", "text": "กิจการซ่งึ รวมอย่ใู นงบการเงินรวม"}, {"letter": "b", "text": "กิจการซ่งึ มีโครงสรา้ งเฉพาะตวั ซง่ึ ไม่ไดร้ วมอย่ใู นงบการเงินรวม"}, {"letter": "c", "text": "การรว่ มการงานประเภทการดาํ เนินงานรว่ มกนั"}, {"letter": "d", "text": "ส่วนไดเ้สียท่ีถือโดยกิจการท่ีเขา้ รว่ มการงานแต่ไม่ไดม้ กี ารควบคมุ รว่ มกนั ในการรว่ มการงาน"}], "answer": "d", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "อา้ งถงึ TAS 16 เรื่องท่ีดิน อาคารและอปุ กรณ ์หากกจิ การใชว้ ิธีตีราคา (Revaluation Model) สาํ หรบั PPE ขอ้ ใด ต่อไปนี ้“ไม่ใช่” ขอ้ มลู ทม่ี าตรฐานกาํ หนดใหต้ อ้ งเปิดเผยในงบการเงิน", "options": [{"letter": "a", "text": "วนั ท่ีมีผลของการตีราคาลา่ สดุ"}, {"letter": "b", "text": "ขอ้ เท็จจรงิ วา่ การตีราคาดาํ เนินการโดยผปู้ ระเมินอิสระหรือไม ่"}, {"letter": "c", "text": "ยอดส่วนเกินทนุ จากการตีราคาท่แี สดงในส่วนของเจา้ ของ"}, {"letter": "d", "text": "ช่ือของผปู้ ระเมินมลู คา่ ท่ีทาํ การตรี าคา"}], "answer": "d", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "ขอ้ ใดต่อไปน ี้“ถกู ตอ้ ง” เกี่ยวกบั สินทรพั ยท์ ่ีเกิดจากการคาํ้ ประกนั (Indemnification Asset) ตาม TFRS 3 เรื่อง การรวมธุรกิจ", "options": [{"letter": "a", "text": "ผซู้ ือ้ ไม่ตอ้ งรบั รูส้ ินทรพั ยท์ ่ีเกดิ จากการคาํ้ ประกนั หากสินทรพั ยห์ รือหนีส้ ินท่เีกี่ยวขอ้ งไดร้ บั การรบั รูแ้ ลว้ ในการรวมธุรกจิ"}, {"letter": "b", "text": "ผซู้ ือ้ ไม่จาํ เป็นตอ้ งพจิ ารณาความสามารถในการเรยี กเก็บเงินจากผใู้ หก้ ารคาํ้ ประกนั เม่ือรบั รูส้ ินทรพั ยท์ ่ี เกิดจากการคาํ้ ประกนั"}, {"letter": "c", "text": "หากการคาํ้ ประกนั เกี่ยวขอ้ งกบั สนิ ทรพั ยห์ รือหนีส้ ินท่ีรบั รูใ้ นการรวมธุรกิจ ผซู้ ือ้ ควรรบั รูส้ ินทรพั ยท์ ่ีเกิด จากการคาํ้ ประกนั ในเวลาเดียวกนั กบั รายการท่ไี ดร้ บั การคาํ้ ประกนั .."}, {"letter": "d", "text": "สินทรพั ยท์ ่ีเกิดจากการคาํ้ ประกนั ตอ้ งรบั รูเ้ฉพาะเม่ือผขู้ ายไดจ้ า่ ยเงินชดเชยใหผ้ ซู้ ือ้ แลว้ เท่านนั้"}], "answer": null, "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "วนั ท่ี 1 กรกฎาคม 25x1 กิจการซอื้ รถราคา 700,000 บาท อายกุ ารใชง้ าน 5 ปี มลู ค่าคงเหลือ 1,000 บาท และ ตดั คา่ เสื่อมราคาดว้ ยวิธีเสน้ ตรง ต่อมา ณ สิน้ ปี 25x3 กจิ การประเมนิ อายกุ ารใชง้ านคงเหลือใหม่เป็น 3 ปี และ ไม่มีมลู ค่าคงเหลือ ค่าเสื่อมราคาสาํ หรบั ปี 25x3 เทา่ กบั ขอ้ ใด", "options": [{"letter": "a", "text": "69,900 บาท"}, {"letter": "b", "text": "139,800 บาท"}, {"letter": "c", "text": "163,433 บาท"}, {"letter": "d", "text": "233,100 บาท (700,000 1,000)/5=139,800 บาท ซ่งึ การเปลีย่ นประมาณการเกิดขึน้ ณ สนิ้ ปี 25x3 จึงมีผล prospective ตงั้ แต่ ปีถดั ไป ดงั นนั้ ค่าเสอื่ มของปี 25x3 ยงั เป็น 139,800 บาท −"}], "answer": "b", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "วนั ท่ี 1 มกราคม 25x1 บรษิ ัท ก จาํ กดั มีสินคา้ คงเหลือ 450 หน่วย ตน้ ทนุ หน่วยละ 42 บาท ต่อมาบรษิ ทั ได้ ซือ้ สินคา้ เพมิ่ เติมดงั น ี้ วนั ท่ี จาํ นวน (หน่วย) ราคาต่อหน่วย (บาท) 10 ม.ค. 25X1 600 44 15 ม.ค. 25X1 750 46 20 ม.ค. 25X1 300 48 บรษิ ัทใชว้ ิธี เขา้ ก่อนออกก่อน (FIFO) และบนั ทึกสินคา้ คงเหลือแบบ Perpetual ณ วนั ท่ี 31 มกราคม 25x1 พบว่าสินคา้ คงเหลือมีจาํ นวน 600 หน่วย ตน้ ทนุ สินคา้ คงเหลือ ณ วนั ท่ี 31 มกราคม 25x1 เท่ากบั ขอ้ ใด", "options": [{"letter": "a", "text": "27,600 บาท"}, {"letter": "b", "text": "27,900 บาท"}, {"letter": "c", "text": "28,200 บาท"}, {"letter": "d", "text": "28,800 บาท (300 x 48) + (300 x 46) = 28,200 บาท"}], "answer": "c", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "บรษิ ัท A จาํ กดั ทาํ สญั ญาซือ้ หนุ้ ของบรษิ ัท B จาํ กดั เพ่ือใหไ้ ดอ้ าํ นาจควบคมุ โดยมีเหตกุ ารณส์ าํ คญั ดงั น ี้ • 30 มิถนุ ายน 25X1 บรษิ ัท A และผถู้ ือหนุ้ ของบรษิ ัท B ลงนามในสญั ญาซือ้ หนุ้ • 20 กรกฎาคม 25X1 บรษิ ัท A เรม่ิ มีส่วนรว่ มในการกาํ หนดนโยบายการบรหิ ารและมีอาํ นาจในการตดั สินใจ เกี่ยวกบั กจิ กรรมท่ีสาํ คญั ของบรษิ ัท B • 31 กรกฎาคม 25X1 บรษิ ัท A ชาํ ระเงินคา่ ซือ้ หนุ้ ครบถว้ นใหแ้ ก่ผขู้ าย ตามมาตรฐาน TFRS 3 การรวมธุรกิจ วนั ท่ีซือ้ กิจการ (Acquisition date) คือขอ้ ใด", "options": [{"letter": "a", "text": "30 มิถนุ ายน 25X1"}, {"letter": "b", "text": "20 กรกฎาคม 25X1"}, {"letter": "c", "text": "31 กรกฎาคม 25X1"}, {"letter": "d", "text": "วนั ท่ีท่ีมีการโอนกรรมสิทธิ์หนุ้ ตามกฎหมาย"}], "answer": "b", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "ขอ้ ใดอธิบายความหมายของ “คา่ ใชจ้ ่าย (รายได)้ ภาษีเงินได”้ ไดถ้ กู ตอ้ งท่ีสดุ ตาม TAS 12 ภาษีเงินได ้", "options": [{"letter": "a", "text": "ภาษีเงินไดท้ ่ีตอ้ งชาํ ระใหก้ รมสรรพากรสาํ หรบั กาํ ไรทางภาษีของงวดนนั้"}, {"letter": "b", "text": "ภาษีเงินไดท้ ่ีคาํ นวณจากกาํ ไรทางบญั ชีของกิจการ"}, {"letter": "c", "text": "ภาษีเงินไดง้ วดปัจจบุ นั รวมกบั ภาษีเงินไดร้ อตดั บญั ชีท่ีเกิดจากผลแตกต่างช่วั คราว"}, {"letter": "d", "text": "ภาษีเงินไดท้ ่ีกิจการคาดว่าจะตอ้ งจ่ายในอนาคตจากกาํ ไรสะสม"}], "answer": "c", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "บรษิ ัท ก ข และ ค จดั ตงั้ กิจการรว่ มการงานแห่งหนงึ่ โดยมีสดั ส่วนการถือหนุ้ ดงั นี ้บรษิ ัท ก ถือหนุ้ 50% บรษิ ทั ข ถือหนุ้ 30% และ บรษิ ัท ค ถือหนุ้ 20% ซ่งึ ตามขอ้ ตกลงในสญั ญา การตดั สินใจเกี่ยวกบั กจิ กรรมท่สี าํ คญั ของ กิจการ ตอ้ งไดร้ บั เสียงเห็นชอบ ไม่นอ้ ยกว่า 72% ของสิทธิออกเสยี งทงั้ หมด ขอ้ ใดต่อไปน ี้ถกู ตอ้ งท่ีสดุ", "options": [{"letter": "a", "text": "บรษิ ัท ก มีอาํ นาจควบคมุ กิจการ เน่ืองจากถือหนุ้ มากท่ีสดุ"}, {"letter": "b", "text": "บรษิ ัท ก และ ข เป็นผคู้ วบคมุ รว่ ม เน่ืองจากรวมกนั มีสิทธิออกเสยี งเกิน 72%"}, {"letter": "c", "text": "บรษิ ัท ข และ ค เป็นผคู้ วบคมุ รว่ ม เน่ืองจากตอ้ งรว่ มกนั ตดั สินใจ"}, {"letter": "d", "text": "กิจการนีไ้ ม่มีผคู้ วบคมุ เน่อื งจากไม่มีฝ่ายใดถือหนุ้ เกิน 50%"}], "answer": "b", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "วนั ท่ี 1 มกราคม 25x1 บรษิ ัท ก ซือ้ เครื่องจกั รมาในราคา 1,000,000 บาท อายกุ ารใหป้ ระโยชน ์10 ปี ไม่มีมลู ค่า คงเหลือ และกจิ การตดั คา่ เสื่อมราคาโดยวิธี เสน้ ตรง ณ วนั ท่ี 31 ธนั วาคม 25x2 เครื่องจกั รเกิดการดอ้ ยคา่ โดย หลงั รบั รูผ้ ลขาดทนุ จากการดอ้ ยค่าแลว้ เครื่องจกั รมี มลู คา่ ตามบญั ชี 640,000 บาท ต่อมา ณ วนั ท่ี 31 ธันวาคม 25x6 กจิ การประเมินว่า มลู คา่ ท่คี าดว่าจะไดร้ บั คืน (Recoverable amount) ของเครื่องจกั รเทา่ กบั 580,000 บาท และไม่มีขอ้ บ่งชีข้ องการดอ้ ยค่าอกี ต่อไป ตาม TAS 36 การดอ้ ยคา่ ของสินทรพั ย ์บรษิ ัทควรกลบั รายการผล ขาดทนุ จากการดอ้ ยคา่ ของเครื่องจกั รจาํ นวนเท่าใด", "options": [{"letter": "a", "text": "160,000 บาท"}, {"letter": "b", "text": "120,000 บาท"}, {"letter": "c", "text": "80,000 บาท"}, {"letter": "d", "text": "ไม่ตอ้ งกลบั รายการ ค่าเสอื่ มเดมิ ปีละ 100,000 บาท ดงั นนั้ ณ 31/12/x2 มูลค่าตามบญั ชีก่อนดอ้ ยค่า = 800,000 บาท และหลงั ดอ้ ยค่าเหลือ 640,000 บาท จากนนั้ ตดั ค่าเสอื่ มใหมต่ ามมูลค่าหลงั ดอ้ ยค่าและอายคุ งเหลือ 8 ปี ไดป้ ีละ 80,000 บาท ดงั นนั้ ณ 31/12/x6 มูลคา่ ตามบญั ชี = 320,000 บาท ขณะทถี่ า้ ไม่เคยดอ้ ยค่าเลย มูลคา่ ตามบญั ช ีณ วนั เดยี วกนั จะเทา่ กบั 400,000 บาท จงึ กลบั รายการดอ้ ยค่าไดส้ ูงสดุ เพยี ง 80,000 บาท แม ้recoverable amount จะเป็น 580,000 บาทก็ตาม ดงั นนั้ คาํ ตอบคอื 80,000 บาท"}], "answer": "c", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "วนั ท่ี 1 มกราคม 25x1 บรษิ ัท ก ซือ้ รถยนตน์ ่งั มาในราคา 1,800,000 บาท กจิ การตดั คา่ เสื่อมราคาโดยวิธีเสน้ ตรง อตั รา 20% ต่อปี ทงั้ ทางบญั ชีและทางภาษี ตามกฎหมายภาษีอากร ค่าเสื่อมราคาของ รถยนตน์ ่งั สามารถนาํ มา หกั ภาษีไดจ้ ากมลู ค่ารถไม่เกิน 1,000,000 บาท กิจการคาดว่าจะขายรถยนตค์ นั นใี้ นอนาคต ใหพ้ จิ ารณาว่า ณ วนั ท่ี 31 ธันวาคม 25x1 กิจการตอ้ งรบั รู ้สินทรพั ยห์ รือหนสี้ ินภาษีเงนิ ไดร้ อตดั บญั ชี (Deferred tax) เท่าใด หาก อตั ราภาษีเงินไดน้ ติ ิบคุ คลเท่ากบั 20%", "options": [{"letter": "a", "text": "0 บาท"}, {"letter": "b", "text": "32,000 บาท"}, {"letter": "c", "text": "160,000 บาท"}, {"letter": "d", "text": "800,000 บาท"}], "answer": "a", "exam": "ครั้งที่ 1/2569", "source": "69_01"}, {"question": "บรษิ ัท ก ทาํ สญั ญาเช่าสาํ นกั งานเป็นระยะเวลา 5 ปี โดยชาํ ระคา่ เช่า ปีละ 200,000 บาท ณ สิน้ ปี ณ วนั ท่ี 31 ธันวาคม 25x1 หลงั จากบนั ทึกบญั ชีตาม TFRS 16 แลว้ กิจการมสี ินทรพั ยส์ ิทธิการใช ้(Right-of-Use asset) = 800,000 บาท หนีส้ ินตามสญั ญาเชา่ (Lease liability) = 900,000 บาท สาํ หรบั วตั ถปุ ระสงคท์ างภาษี ค่าเชา่ จะ ถือเป็น ค่าใชจ้ ่ายเม่ือจ่ายเงิน และไม่รบั รูส้ ินทรพั ยห์ รือหนสี้ ินจากสญั ญาเชา่ อตั ราภาษีเงินไดน้ ิติบคุ คล 20% ตาม TAS 12 ภาษีเงินได ้กิจการควรรบั รู ้สินทรพั ยห์ รือหนีส้ ินภาษีเงินไดร้ อตดั บญั ชเีท่าใด", "options": [{"letter": "a", "text": "DTL 20,000 บาท"}, {"letter": "b", "text": "DTA 20,000 บาท"}, {"letter": "c", "text": "DTL 180,000 บาท"}, {"letter": "d", "text": "ไม่เกิด DTA หรือ DTL"}], "answer": "b", "exam": "ครั้งที่ 1/2569", "source": "69_01"}];
+
+// === STATE ===
+let quizQuestions=[], currentIdx=0, answers=[];
+let selectedExam='all', selectedMode='quiz', selectedCount='all';
+let timerInterval=null, startTime=null, elapsedSeconds=0;
+let history=[];
+
+// === UTILS ===
+function formatTime(s){
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  if(h>0) return `${pad(h)}:${pad(m)}:${pad(sec)}`;
+  return `${pad(m)}:${pad(sec)}`;
+}
+function pad(n){return n.toString().padStart(2,'0')}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// === LOAD / SAVE ===
+function loadData(){
+  const d=localStorage.getItem('cpa_ac1_data');
+  if(d){
+    const parsed=JSON.parse(d);
+    history=parsed.history||[];
+  }
+  renderHomeStats();
+  renderHistory();
+}
+
+function saveSession(pct,correct,total,noAns,timeS,examName,examCount){
+  const session={
+    date:new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'}),
+    time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
+    pct,correct,total,noAns,timeS,examName,examCount
+  };
+  history.unshift(session);
+  if(history.length>20) history=history.slice(0,20);
+  localStorage.setItem('cpa_ac1_data',JSON.stringify({history}));
+  renderHomeStats();
+  renderHistory();
+}
+
+function renderHomeStats(){
+  const sessions=history.length;
+  const best=sessions>0?Math.max(...history.map(h=>h.pct)):null;
+  document.getElementById('sessions-stat').textContent=sessions;
+  document.getElementById('best-score-stat').textContent=best!==null?best+'%':'-';
+  document.getElementById('total-q-stat').textContent=ALL_QUESTIONS.length;
+}
+
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(history.length===0){el.innerHTML='<div class="no-history">ยังไม่มีประวัติ ลองทำข้อสอบดูเลย!</div>';return;}
+  el.innerHTML=history.slice(0,5).map(h=>`
+    <div class="history-item">
+      <div class="h-score">${h.pct}%</div>
+      <div class="h-info">
+        <div class="h-exam">${h.examName} · ${h.examCount} ข้อ</div>
+        <div class="h-detail">ถูก ${h.correct}/${h.total-h.noAns} · ไม่มีเฉลย ${h.noAns}</div>
+      </div>
+      <div class="h-time">
+        <div>${formatTime(h.timeS)}</div>
+        <div class="h-date">${h.date} ${h.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// === HOME FILTERS ===
+document.getElementById('exam-filter').addEventListener('click',e=>{
+  const chip=e.target.closest('.chip');if(!chip)return;
+  document.querySelectorAll('#exam-filter .chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');selectedExam=chip.dataset.exam;
+});
+document.getElementById('count-filter').addEventListener('click',e=>{
+  const chip=e.target.closest('.chip');if(!chip)return;
+  document.querySelectorAll('#count-filter .chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');selectedCount=chip.dataset.count;
+});
+function selectMode(btn,mode){
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');selectedMode=mode;
+}
+
+// === START QUIZ ===
+function startQuiz(){
+  let pool=[...ALL_QUESTIONS];
+  if(selectedExam!=='all') pool=pool.filter(q=>q.source===selectedExam);
+  if(selectedMode==='shuffle') pool=pool.sort(()=>Math.random()-.5);
+  if(selectedCount!=='all') pool=pool.slice(0,parseInt(selectedCount));
+  if(pool.length===0){alert('ไม่พบข้อสอบ');return;}
+  quizQuestions=pool;currentIdx=0;
+  answers=quizQuestions.map(()=>({selected:null,correct:null,hasAnswer:false}));
+  startTimer();
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function restartSame(){
+  currentIdx=0;
+  answers=quizQuestions.map(()=>({selected:null,correct:null,hasAnswer:false}));
+  startTimer();
+  showScreen('quiz');
+  renderQuestion();
+}
+
+// === TIMER ===
+function startTimer(){
+  stopTimer();
+  elapsedSeconds=0;
+  startTime=Date.now();
+  updateTimerDisplay();
+  timerInterval=setInterval(()=>{
+    elapsedSeconds=Math.floor((Date.now()-startTime)/1000);
+    updateTimerDisplay();
+  },1000);
+}
+
+function stopTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+
+function updateTimerDisplay(){
+  document.getElementById('timer-display').textContent=formatTime(elapsedSeconds);
+}
+
+// === RENDER QUESTION ===
+function renderQuestion(){
+  const q=quizQuestions[currentIdx];
+  const total=quizQuestions.length;
+  const pct=Math.round((currentIdx/total)*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('q-progress-text').textContent=`ข้อ ${currentIdx+1} / ${total}`;
+  document.getElementById('q-remaining').textContent=`เหลือ ${total-currentIdx-1} ข้อ`;
+  const answered=answers.filter(a=>a.selected!==null).length;
+  const correct=answers.filter(a=>a.correct).length;
+  document.getElementById('live-score').textContent=`${correct}/${answered}`;
+  document.getElementById('q-exam-tag').textContent=q.exam;
+  document.getElementById('q-num').textContent=`ข้อที่ ${currentIdx+1}`;
+  document.getElementById('q-text').textContent=q.question;
+  const list=document.getElementById('options-list');
+  list.innerHTML='';
+  q.options.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='option-btn';
+    btn.innerHTML=`<span class="option-letter">${opt.letter.toUpperCase()}</span><span class="option-text">${opt.text}</span>`;
+    btn.addEventListener('click',()=>selectAnswer(opt.letter));
+    list.appendChild(btn);
+  });
+  const fb=document.getElementById('feedback-box');
+  fb.className='feedback-box';
+  document.getElementById('next-btn').className='next-btn';
+}
+
+function selectAnswer(letter){
+  const q=quizQuestions[currentIdx];
+  const a=answers[currentIdx];
+  if(a.selected!==null)return;
+  a.selected=letter;
+  const hasAnswer=!!q.answer;
+  a.hasAnswer=hasAnswer;
+  const optBtns=document.querySelectorAll('.option-btn');
+  optBtns.forEach(btn=>btn.disabled=true);
+  const fb=document.getElementById('feedback-box');
+  const ftitle=document.getElementById('feedback-title');
+  const fdetail=document.getElementById('feedback-detail');
+  if(!hasAnswer){
+    a.correct=false;
+    optBtns.forEach(btn=>{if(btn.querySelector('.option-letter').textContent.toLowerCase()===letter)btn.classList.add('selected');});
+    fb.className='feedback-box show no-answer-fb';
+    ftitle.textContent='ไม่มีเฉลยในข้อนี้';
+    fdetail.textContent='ข้อนี้ไม่มีคำตอบระบุไว้ในเอกสาร';
+  }else if(letter===q.answer){
+    a.correct=true;
+    optBtns.forEach(btn=>{if(btn.querySelector('.option-letter').textContent.toLowerCase()===letter)btn.classList.add('correct');});
+    fb.className='feedback-box show correct-fb';
+    ftitle.textContent='ถูกต้อง!';
+    fdetail.textContent=`ตอบ ${letter.toUpperCase()} ถูกต้อง`;
+  }else{
+    a.correct=false;
+    optBtns.forEach(btn=>{
+      const l=btn.querySelector('.option-letter').textContent.toLowerCase();
+      if(l===letter)btn.classList.add('wrong');
+      if(l===q.answer)btn.classList.add('correct');
+    });
+    fb.className='feedback-box show wrong-fb';
+    ftitle.textContent='ผิด';
+    fdetail.textContent=`คำตอบที่ถูกต้องคือ ${q.answer.toUpperCase()}`;
+  }
+  const answered=answers.filter(a=>a.selected!==null).length;
+  const correct=answers.filter(a=>a.correct).length;
+  document.getElementById('live-score').textContent=`${correct}/${answered}`;
+  document.getElementById('next-btn').className='next-btn show';
+}
+
+function nextQuestion(){
+  if(currentIdx<quizQuestions.length-1){
+    currentIdx++;renderQuestion();window.scrollTo(0,0);
+  }else{
+    showResults();
+  }
+}
+
+// === RESULTS ===
+function showResults(){
+  stopTimer();
+  const total=quizQuestions.length;
+  const correct=answers.filter(a=>a.correct).length;
+  const noAnswer=answers.filter(a=>!a.hasAnswer).length;
+  const wrong=answers.filter(a=>a.selected!==null&&!a.correct&&a.hasAnswer).length;
+  const scorable=total-noAnswer;
+  const pct=scorable>0?Math.round((correct/scorable)*100):0;
+  const examName=selectedExam==='all'?'ทั้งหมด':quizQuestions[0]?.exam||'';
+
+  saveSession(pct,correct,total,noAnswer,elapsedSeconds,examName,total);
+
+  document.getElementById('r-correct').textContent=correct;
+  document.getElementById('r-wrong').textContent=wrong;
+  document.getElementById('r-skipped').textContent=noAnswer;
+  document.getElementById('big-score').textContent=pct+'%';
+  document.getElementById('score-label').textContent=`ถูก ${correct} จาก ${scorable} ข้อ (ที่มีเฉลย)`;
+  document.getElementById('time-display').textContent='⏱ เวลาที่ใช้: '+formatTime(elapsedSeconds);
+
+  let emoji,title;
+  if(pct>=80){emoji='🏆';title='ยอดเยี่ยม!';}
+  else if(pct>=60){emoji='👍';title='ดีมาก!';}
+  else if(pct>=40){emoji='💪';title='พยายามต่อไป!';}
+  else{emoji='📚';title='ต้องทบทวนเพิ่ม';}
+
+  document.getElementById('result-emoji').textContent=emoji;
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-subtitle').textContent=`ทำครบ ${total} ข้อ`;
+  showScreen('result');
+}
+
+// === REVIEW ===
+let reviewFilter='all';
+function showReview(){
+  reviewFilter='all';
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.filter-tab')[0].classList.add('active');
+  renderReview();showScreen('review');
+}
+function filterReview(filter,btn){
+  reviewFilter=filter;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');renderReview();
+}
+function renderReview(){
+  const list=document.getElementById('review-list');list.innerHTML='';
+  quizQuestions.forEach((q,i)=>{
+    const a=answers[i];let cls,status;
+    if(!a.hasAnswer){
+      if(reviewFilter==='correct'||reviewFilter==='wrong')return;
+      cls='r-skipped';status='ไม่มีเฉลย';
+    }else if(a.correct){
+      if(reviewFilter==='wrong')return;
+      cls='r-correct';status='ถูก';
+    }else{
+      if(reviewFilter==='correct')return;
+      cls='r-wrong';status='ผิด';
+    }
+    const item=document.createElement('div');
+    item.className=`review-item ${cls}`;
+    const optHtml=q.options.map(opt=>{
+      let oc='review-opt';
+      if(opt.letter===q.answer)oc+=' r-is-correct';
+      else if(opt.letter===a.selected&&opt.letter!==q.answer)oc+=' r-was-selected';
+      return `<div class="${oc}">${opt.letter.toUpperCase()}. ${opt.text}</div>`;
+    }).join('');
+    item.innerHTML=`
+      <div class="review-meta"><span class="review-status">${status}</span><span class="exam-tag">${q.exam}</span></div>
+      <div class="review-q">${i+1}. ${q.question}</div>
+      <div class="review-options">${optHtml}</div>`;
+    list.appendChild(item);
+  });
+  if(!list.innerHTML) list.innerHTML='<div style="text-align:center;color:#a0aec0;padding:30px">ไม่มีข้อในหมวดนี้</div>';
+}
+
+// === QR CODE ===
+function showQR(){
+  const modal=document.getElementById('qr-modal');
+  const urlEl=document.getElementById('qr-url-text');
+  const qrEl=document.getElementById('qr-canvas');
+  qrEl.innerHTML='';
+
+  const url=window.location.href;
+  urlEl.textContent=url;
+
+  if(url.startsWith('file://')){
+    qrEl.innerHTML='<div style="padding:16px;color:#e53e3e;font-size:.85rem">กรุณาเปิดผ่าน HTTP server ก่อน<br>รัน start_server.sh แล้วลองใหม่</div>';
+  }else{
+    try{
+      new QRCode(qrEl,{text:url,width:180,height:180,correctLevel:QRCode.CorrectLevel.M});
+    }catch(e){
+      qrEl.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}" width="180" height="180">`;
+    }
+  }
+  modal.style.display='flex';
+}
+
+function closeQR(e){
+  if(!e||e.target===document.getElementById('qr-modal'))
+    document.getElementById('qr-modal').style.display='none';
+}
+
+function goHome(){stopTimer();showScreen('home');renderHistory();}
+
+// === INIT ===
+loadData();
+</script>
+</body>
+</html>
