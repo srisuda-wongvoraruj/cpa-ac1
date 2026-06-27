@@ -2876,6 +2876,7 @@ const Progress = {
     const p = this.get(userId);
     if (!p[chapterId]) p[chapterId] = {};
     p[chapterId].bookmark = idx;
+    p._lastBookmark = { chapterId: chapterId, idx: idx };
     this.save(userId, p);
   },
 
@@ -2884,10 +2885,25 @@ const Progress = {
     return typeof cp.bookmark === 'number' ? cp.bookmark : null;
   },
 
+  getLastBookmark(userId) {
+    const p = this.get(userId);
+    const lb = p._lastBookmark;
+    if (lb && typeof lb.chapterId !== 'undefined' && typeof lb.idx === 'number'
+        && p[lb.chapterId] && typeof p[lb.chapterId].bookmark === 'number') {
+      return lb;
+    }
+    for (const ch of COURSE.chapters) {
+      const cp = p[ch.id] || {};
+      if (typeof cp.bookmark === 'number') return { chapterId: ch.id, idx: cp.bookmark };
+    }
+    return null;
+  },
+
   clearBookmark(userId, chapterId) {
     const p = this.get(userId);
     if (p[chapterId] && typeof p[chapterId].bookmark === 'number') {
       delete p[chapterId].bookmark;
+      if (p._lastBookmark && p._lastBookmark.chapterId === chapterId) delete p._lastBookmark;
       this.save(userId, p);
     }
   },
@@ -3135,10 +3151,14 @@ const App = {
   pageWrapper(content, user, active) {
     const nav = [
       { key: 'dashboard', icon: '🏠', label: 'หน้าหลัก' },
-      { key: 'chapters', icon: '📚', label: 'บทเรียน', action: () => App.go('dashboard') },
+      { key: 'chapters', icon: '📚', label: 'บทเรียน' },
+      { key: 'bookmark', icon: '🔖', label: 'อ่านต่อ' },
       { key: 'exam', icon: '✏️', label: 'ข้อสอบจริง' },
       { key: 'pricing', icon: '⭐', label: 'Premium' }
     ];
+    const navClick = (k) => k === 'chapters' ? 'App.goLessons()'
+      : k === 'bookmark' ? 'App.gotoLastBookmark()'
+      : `App.go('${k}')`;
     return `
     <nav class="navbar">
       <div class="navbar-inner">
@@ -3152,7 +3172,7 @@ const App = {
     <div class="dashboard-layout">
       <aside class="sidebar">
         ${nav.map(n => `
-          <div class="sidebar-item ${active === n.key ? 'active' : ''}" onclick="${n.key === 'chapters' ? 'App.goLessons()' : `App.go('${n.key}')`}">
+          <div class="sidebar-item ${active === n.key ? 'active' : ''}" onclick="${navClick(n.key)}">
             <span class="icon">${n.icon}</span>${n.label}
           </div>`).join('')}
       </aside>
@@ -3183,6 +3203,18 @@ const App = {
 
     <div class="page-title">สวัสดี, ${user.name} 👋</div>
     <div class="page-sub">มาต่อจากที่ค้างไว้กันเลย</div>
+
+    ${(() => {
+      const lb = Progress.getLastBookmark(user.id);
+      if (!lb) return '';
+      const ch = COURSE.chapters.find(c => c.id === lb.chapterId);
+      if (!ch) return '';
+      return `<div class="resume-banner" onclick="App.gotoLastBookmark()">
+        <span class="resume-icon">🔖</span>
+        <span class="resume-text">อ่านต่อจากที่บุ๊กมาร์กไว้ — บทที่ ${ch.id}: ${ch.title}</span>
+        <span class="resume-arrow">→</span>
+      </div>`;
+    })()}
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -3429,6 +3461,25 @@ const App = {
       target.classList.add('bookmark-flash');
       setTimeout(() => target.classList.remove('bookmark-flash'), 1800);
     }
+  },
+
+  gotoLastBookmark() {
+    const lb = Progress.getLastBookmark(GUEST_USER.id);
+    if (!lb) { alert('ยังไม่มีบุ๊กมาร์ก — ขณะอ่านบทเรียน แตะปุ่ม 🔖 มุมขวาล่างเพื่อบันทึกจุดที่อ่านค้างไว้'); return; }
+    const ch = COURSE.chapters.find(c => c.id === lb.chapterId);
+    if (!ch) return;
+    const locked = !ch.free && !GUEST_USER.premium;
+    if (locked) { this.showUpgrade(); return; }
+    this.go('chapter', lb.chapterId);
+    setTimeout(() => {
+      const target = document.getElementById('chb-' + lb.idx);
+      if (target) {
+        const y = target.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        target.classList.add('bookmark-flash');
+        setTimeout(() => target.classList.remove('bookmark-flash'), 1800);
+      }
+    }, 80);
   },
 
   // ── QUIZ ──
