@@ -2945,6 +2945,19 @@ const App = {
     window.scrollTo(0, 0);
   },
 
+  goLessons() {
+    const scroll = () => {
+      const t = document.getElementById('lessonList');
+      if (t) window.scrollTo({ top: t.getBoundingClientRect().top + window.scrollY - 70, behavior: 'smooth' });
+    };
+    if (this.currentPage !== 'dashboard') {
+      this.go('dashboard');
+      setTimeout(scroll, 60);
+    } else {
+      scroll();
+    }
+  },
+
   // ── LANDING ──
   pageLanding() {
     return `
@@ -3139,7 +3152,7 @@ const App = {
     <div class="dashboard-layout">
       <aside class="sidebar">
         ${nav.map(n => `
-          <div class="sidebar-item ${active === n.key ? 'active' : ''}" onclick="App.go('${n.key === 'chapters' ? 'dashboard' : n.key}')">
+          <div class="sidebar-item ${active === n.key ? 'active' : ''}" onclick="${n.key === 'chapters' ? 'App.goLessons()' : `App.go('${n.key}')`}">
             <span class="icon">${n.icon}</span>${n.label}
           </div>`).join('')}
       </aside>
@@ -3189,7 +3202,7 @@ const App = {
       </div>
     </div>
 
-    <div class="page-title" style="font-size:20px;margin-bottom:16px;">บทเรียนทั้งหมด</div>
+    <div class="page-title" id="lessonList" style="font-size:20px;margin-bottom:16px;scroll-margin-top:70px;">บทเรียนทั้งหมด</div>
     <div class="chapter-list">
       ${COURSE.chapters.map(ch => {
         const cp = p[ch.id] || {};
