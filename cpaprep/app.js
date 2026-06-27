@@ -2753,6 +2753,9 @@ const App = {
     else if (this.currentPage === 'quiz') {
       el.innerHTML = this.pageWrapper(this.pageQuiz(user), user, 'chapters');
     }
+    else if (this.currentPage === 'exam') {
+      el.innerHTML = this.pageWrapper(this.pageExam(user), user, 'exam');
+    }
     else if (this.currentPage === 'progress') {
       el.innerHTML = this.pageWrapper(this.pageProgress(user), user, 'progress');
     }
@@ -2935,10 +2938,21 @@ const App = {
   },
 
   // ── WRAPPER ──
+  // ── EXAM BANK (embedded quiz app) ──
+  pageExam(user) {
+    return `
+    <div class="page-title">คลังข้อสอบจริง ✏️</div>
+    <p class="section-sub mb-2">ข้อสอบ CPA วิชา AC1 จริงทุกครั้งสอบ พร้อมเฉลยอธิบาย — เลือกชุด เลือกโหมด แล้วเริ่มทำได้เลย</p>
+    <div style="border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+      <iframe src="quiz.html" title="คลังข้อสอบจริง" style="width:100%;height:calc(100vh - 200px);min-height:600px;border:0;display:block;"></iframe>
+    </div>`;
+  },
+
   pageWrapper(content, user, active) {
     const nav = [
       { key: 'dashboard', icon: '🏠', label: 'หน้าหลัก' },
       { key: 'chapters', icon: '📚', label: 'บทเรียน', action: () => App.go('dashboard') },
+      { key: 'exam', icon: '✏️', label: 'ข้อสอบจริง' },
       { key: 'progress', icon: '📊', label: 'ความคืบหน้า' },
       { key: 'pricing', icon: '⭐', label: 'Premium' }
     ];
