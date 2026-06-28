@@ -525,13 +525,44 @@ body {
 }
 .journal-dr { color: var(--navy); }
 .journal-cr { color: #6b46c1; padding-left: 40px; display: block; }
-.jline { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 2px 0; }
-.jcrline { padding-left: 36px; }
-.jacct { flex: 1; }
+.jrow { display: grid; grid-template-columns: 1fr 90px 90px; gap: 4px 14px; align-items: baseline; padding: 2px 0; }
+.jrow .jamt { white-space: nowrap; font-weight: 700; text-align: right; }
+.jcrlabel { padding-left: 26px; }
 .jamt { white-space: nowrap; font-weight: 700; }
 .jdr { color: var(--navy); }
 .jcr { color: #6b46c1; }
+@media (max-width: 480px) { .jrow { grid-template-columns: 1fr 72px 72px; gap: 4px 8px; font-size: 13px; } .jcrlabel { padding-left: 16px; } }
 .jnote { font-size: 13px; color: var(--text-muted); margin: 10px 0 4px; font-family: 'Mali', sans-serif; }
+
+/* ── Highlight + ShortNote ── */
+.hl-float-btn {
+  position: absolute; z-index: 999;
+  background: var(--primary, #0369a1); color: #fff; border: 0;
+  border-radius: 20px; padding: 7px 14px; font-size: 13px; font-weight: 700;
+  font-family: 'Mali', sans-serif; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25); white-space: nowrap;
+}
+.hl-float-btn:hover { filter: brightness(1.08); }
+mark.hl { background: #fde68a; border-radius: 3px; padding: 0 2px; }
+.note-group { margin-top: 18px; }
+.note-group-title {
+  font-family: 'Mali', sans-serif; font-weight: 700; color: var(--primary-dark, #0c4a6e);
+  font-size: 15px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid var(--border, #bae6fd);
+}
+.note-item {
+  background: #fff; border: 1px solid var(--border, #bae6fd); border-left: 4px solid var(--gold, #f59e0b);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 10px;
+}
+.note-src { font-size: 12px; color: var(--text-muted, #64748b); margin-bottom: 5px; font-family: 'Mali', sans-serif; }
+.note-text { font-size: 14px; color: var(--text, #0c4a6e); line-height: 1.6; white-space: pre-wrap; }
+.note-actions { margin-top: 8px; display: flex; gap: 8px; }
+.note-btn {
+  background: #f0f9ff; border: 1px solid var(--border, #bae6fd); color: var(--primary, #0369a1);
+  border-radius: 8px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-family: 'Mali', sans-serif;
+}
+.note-btn:hover { background: #e0f2fe; }
+.note-btn.danger { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+
 .warning-box {
   background: #fffbeb;
   border-left: 4px solid var(--gold);
