@@ -674,6 +674,28 @@ mark.hl { background: #fde68a; border-radius: 3px; padding: 0 2px; }
   font-size: 14.5px;
   margin-top: 10px;
 }
+/* interactive answer attempt */
+.example-attempt { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+.example-input {
+  width: 100%; min-height: 70px; resize: vertical;
+  font-family: 'Mali', sans-serif; font-size: 14px; color: #2d3748;
+  padding: 10px 14px; border: 1.5px dashed #9ae6b4; border-radius: 8px;
+  background: #fffef8; box-sizing: border-box;
+}
+.example-input:focus { outline: none; border-color: #38a169; background: #fff; }
+.example-select {
+  width: 100%; font-family: 'Mali', sans-serif; font-size: 14px; color: #2d3748;
+  padding: 10px 14px; border: 1.5px solid #9ae6b4; border-radius: 8px; background: #fffef8;
+}
+.btn-reveal {
+  align-self: flex-start; cursor: pointer;
+  background: #38a169; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 18px; font-family: 'Mali', sans-serif; font-size: 14px; font-weight: 600;
+}
+.btn-reveal:hover { background: #2f855a; }
+.example-solution { display: none; margin-top: 8px; }
+.example-box.revealed .example-solution { display: block; animation: recallFadeIn 0.3s ease; }
+.example-box.revealed .btn-reveal { background: #718096; }
 
 /* ===== QUIZ ===== */
 .quiz-card {
